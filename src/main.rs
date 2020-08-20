@@ -1,3 +1,5 @@
+use petgraph::graph::Graph;
+
 fn main() {
     let board = Board{};
     let mut history = Vec::new();
@@ -24,6 +26,9 @@ fn solve(history: History) -> Vec<History> {
 
     return result;
 }
+
+//we need to build the network first, then solve it
+//otherwise different branches can cover the same nodes
 
 impl Board {
     fn next(&self, history: &[Board]) -> Vec<Board> {
