@@ -3,10 +3,94 @@ use petgraph::graphmap::UnGraphMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 use petgraph::algo;
+use enum_iterator::IntoEnumIterator;
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Node {
-    id: char
+    id: char,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+struct Position {
+    x: u8,
+    y: u8,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+struct Player {
+    position: Position,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, IntoEnumIterator, Debug)]
+enum Orientation {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, IntoEnumIterator, Debug)]
+enum Size {
+    Small,
+    Large,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, IntoEnumIterator, Debug)]
+enum Color {
+    Black,
+    Red,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+struct Unit {
+    position: Position,
+    orientation: Orientation,
+    color: Color,
+    size: Size,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+struct Block {
+    small: Option<Unit>,
+    large: Option<Unit>,
+    x: u8,
+    y: u8,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+struct Reds {
+    small: Unit,
+    large: Unit,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+struct Node2 {
+    width: u8,
+    height: u8,
+    player: Player,
+    reds: Reds,
+}
+
+impl Node2 {
+    fn available_moves(&self) -> Vec<Orientation> {
+        // for val in Orientation::into_enum_iter() {
+        //     println!("{:?}", val);  
+        // }
+        return Orientation::into_enum_iter().filter(|orientation| {
+            true
+        }).collect();
+        // return Orientation::into_enum_iter().collect();
+    }
+
+    // fn next_nodes(&self) -> Vec<Node2> {
+    //     //where can player move?
+    //     //for each move, do it
+    //     //find what units have moved as a result
+    // }
+
+    fn is_win(&self) -> bool {
+        return self.reds.small.position == self.reds.large.position;
+    }
 }
 
 impl Node {
@@ -193,3 +277,6 @@ fn can_win(network: & UnGraphMap::<Node, ()>) -> bool {
 // //         return vec![];
 // //     }
 // // }
+
+#[cfg(test)]
+mod test;
