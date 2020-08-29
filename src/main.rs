@@ -10,16 +10,23 @@ struct Node {
     id: char,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 struct Position {
     x: u8,
     y: u8,
 }
 
+// impl Position {
+//     fn to_index(&self) -> u8 {
+
+//     }
+// }
+
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Player {
     position: Position,
 }
+
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, IntoEnumIterator, Debug)]
 enum Orientation {
@@ -43,10 +50,8 @@ enum Color {
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Unit {
-    position: Position,
     orientation: Orientation,
     color: Color,
-    size: Size,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -57,29 +62,19 @@ struct Block {
     y: u8,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-struct Reds {
-    small: Unit,
-    large: Unit,
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Node2 {
     width: u8,
     height: u8,
     player: Player,
-    reds: Reds,
+    blocks: Vec<Block>,
 }
 
 impl Node2 {
     fn available_moves(&self) -> Vec<Orientation> {
-        // for val in Orientation::into_enum_iter() {
-        //     println!("{:?}", val);  
-        // }
         return Orientation::into_enum_iter().filter(|orientation| {
             true
         }).collect();
-        // return Orientation::into_enum_iter().collect();
     }
 
     // fn next_nodes(&self) -> Vec<Node2> {
@@ -89,7 +84,24 @@ impl Node2 {
     // }
 
     fn is_win(&self) -> bool {
-        return self.reds.small.position == self.reds.large.position;
+        let position = self.player.position;
+        let index = self.index_from(&position);
+        let block = self.blocks[index];
+        return match (block.small, block.large) {
+            (Some(small), Some(large)) => small.color == Color::Red && large.color == Color::Red,
+            _ => false,
+        };
+    }
+
+    fn index_from(&self, position: &Position) -> usize {
+        (self.width * position.y + position.x).into()
+    }
+
+    fn position_from(&self, index: u8) -> Position {
+        Position{
+            x: index % self.width,
+            y: index / self.width,
+        }
     }
 }
 
