@@ -1,30 +1,20 @@
 use std::hash::Hash;
+use std::collections::HashMap;
 use petgraph::graphmap::UnGraphMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 use petgraph::algo;
 use enum_iterator::IntoEnumIterator;
+use maplit::hashmap;
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Node {
     id: char,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-struct Position {
-    x: u8,
-    y: u8,
-}
-
-// impl Position {
-//     fn to_index(&self) -> u8 {
-
-//     }
-// }
-
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Player {
-    position: Position,
+    block_id: u8,
 }
 
 
@@ -55,19 +45,36 @@ struct Unit {
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+struct NeighbourIds {
+    up: Option<u8>,
+    down: Option<u8>,
+    left: Option<u8>,
+    right: Option<u8>,
+}
+
+impl NeighbourIds {
+    fn new(up: Option<u8>, down: Option<u8>, left: Option<u8>, right: Option<u8>) -> NeighbourIds {
+        NeighbourIds{
+            up: up,
+            down: down,
+            left: left,
+            right: right,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Block {
     small: Option<Unit>,
     large: Option<Unit>,
-    x: u8,
-    y: u8,
+    id: u8,
+    neighbour_ids: NeighbourIds,
 }
 
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+// #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Node2 {
-    width: u8,
-    height: u8,
     player: Player,
-    blocks: Vec<Block>,
+    blocks: HashMap<u8, Block>,
 }
 
 impl Node2 {
@@ -84,24 +91,12 @@ impl Node2 {
     // }
 
     fn is_win(&self) -> bool {
-        let position = self.player.position;
-        let index = self.index_from(&position);
-        let block = self.blocks[index];
+        let player_block_id = self.player.block_id;
+        let block = self.blocks[&player_block_id];
         return match (block.small, block.large) {
             (Some(small), Some(large)) => small.color == Color::Red && large.color == Color::Red,
             _ => false,
         };
-    }
-
-    fn index_from(&self, position: &Position) -> usize {
-        (self.width * position.y + position.x).into()
-    }
-
-    fn position_from(&self, index: u8) -> Position {
-        Position{
-            x: index % self.width,
-            y: index / self.width,
-        }
     }
 }
 
