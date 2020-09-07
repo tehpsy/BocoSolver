@@ -1,11 +1,14 @@
 use std::hash::Hash;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use petgraph::graphmap::UnGraphMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 use petgraph::algo;
 use enum_iterator::IntoEnumIterator;
 use maplit::hashmap;
+use maplit::hashset;
+use std::iter::FromIterator;
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Node {
@@ -24,6 +27,17 @@ enum Orientation {
     Down,
     Left,
     Right,
+}
+
+impl Orientation {
+    pub fn opposite(&self) -> Orientation {
+        match self {
+            Orientation::Up => return Orientation::Down,
+            Orientation::Down => return Orientation::Up,
+            Orientation::Left => return Orientation::Right,
+            Orientation::Right => return Orientation::Left,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, IntoEnumIterator, Debug)]
@@ -61,6 +75,15 @@ impl NeighbourIds {
             right: right,
         }
     }
+
+    fn neighbour_towards(&self, orientation: &Orientation) -> Option<u8> {
+        match orientation {
+            Orientation::Up => return self.up,
+            Orientation::Down => return self.down,
+            Orientation::Left => return self.left,
+            Orientation::Right => return self.right,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -71,17 +94,31 @@ struct Block {
     neighbour_ids: NeighbourIds,
 }
 
-// #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+// #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Node2 {
     player: Player,
     blocks: HashMap<u8, Block>,
 }
 
 impl Node2 {
-    fn available_moves(&self) -> Vec<Orientation> {
-        return Orientation::into_enum_iter().filter(|orientation| {
-            true
-        }).collect();
+    fn available_moves(&self) -> HashSet<Orientation> {
+        let player_block_id = self.player.block_id;
+        let block = self.blocks[&player_block_id];
+        let neighbour_ids = block.neighbour_ids;
+        let vector: Vec<Orientation> = Orientation::into_enum_iter()
+        .filter(|orientation| {
+            return neighbour_ids.neighbour_towards(orientation) != None;
+        })
+        .filter(|orientation| {
+            let neighbour_id = neighbour_ids.neighbour_towards(orientation).unwrap();
+            let neighbour = self.blocks[&neighbour_id];
+            let small_unit_ok = neighbour.small == None || neighbour.small.unwrap().orientation.opposite() == *orientation;
+            let large_unit_ok = neighbour.large == None || neighbour.large.unwrap().orientation.opposite() == *orientation;
+            return small_unit_ok && large_unit_ok;
+        })
+        .collect();
+
+        return HashSet::from_iter(vector);
     }
 
     // fn next_nodes(&self) -> Vec<Node2> {
