@@ -15,7 +15,7 @@ struct Node {
     id: char,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 struct Player {
     block_id: u8,
 }
@@ -52,13 +52,13 @@ enum Color {
     Red,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 struct Unit {
     orientation: Orientation,
     color: Color,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 struct NeighbourIds {
     up: Option<u8>,
     down: Option<u8>,
@@ -86,7 +86,7 @@ impl NeighbourIds {
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 struct Block {
     small: Option<Unit>,
     large: Option<Unit>,
@@ -94,7 +94,8 @@ struct Block {
     neighbour_ids: NeighbourIds,
 }
 
-// #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+// #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Eq, PartialEq, Debug)]
 struct Node2 {
     player: Player,
     blocks: HashMap<u8, Block>,
@@ -112,13 +113,43 @@ impl Node2 {
         .filter(|orientation| {
             let neighbour_id = neighbour_ids.neighbour_towards(orientation).unwrap();
             let neighbour = self.blocks[&neighbour_id];
-            let small_unit_ok = neighbour.small == None || neighbour.small.unwrap().orientation.opposite() == *orientation;
-            let large_unit_ok = neighbour.large == None || neighbour.large.unwrap().orientation.opposite() == *orientation;
+            let small_unit_ok = neighbour.small == None || 
+                (neighbour.small.unwrap().orientation.opposite() == *orientation && (block.small == None || block.small.unwrap().orientation == *orientation));
+            let large_unit_ok = neighbour.large == None ||
+                (neighbour.large.unwrap().orientation.opposite() == *orientation && (block.large == None || block.large.unwrap().orientation == *orientation));
             return small_unit_ok && large_unit_ok;
         })
         .collect();
 
         return HashSet::from_iter(vector);
+    }
+
+    fn moving(&self, orientation: Orientation) -> Node2 {
+        let player_block_id = self.player.block_id;
+        let block = self.blocks[&player_block_id];
+        let neighbour_ids = block.neighbour_ids;
+        let neighbour_id = neighbour_ids.neighbour_towards(&orientation).unwrap();
+        let mut blocks = self.blocks.clone();
+        let mut neighbour_block = blocks.get_mut(&neighbour_id).unwrap().clone();
+        let mut player_block = blocks.get_mut(&player_block_id).unwrap().clone();
+        
+        if player_block.small != None && player_block.small.unwrap().orientation != orientation {
+            neighbour_block.small = player_block.small;
+            player_block.small = None;
+        }
+
+        if player_block.large != None && player_block.large.unwrap().orientation != orientation {
+            neighbour_block.large = player_block.large;
+            player_block.large = None;
+        }
+        
+        blocks.insert(neighbour_id, neighbour_block);
+        blocks.insert(player_block_id, player_block);
+        
+        return Node2{
+            player: Player{block_id: neighbour_id},
+            blocks: blocks
+        }
     }
 
     // fn next_nodes(&self) -> Vec<Node2> {

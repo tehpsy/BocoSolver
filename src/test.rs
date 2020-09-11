@@ -133,6 +133,96 @@ mod tests {
     }
 
     #[test]
+    fn test_only_one_unit_type_allowed_per_block() {
+        {
+            let node = Node2{
+                player: Player{block_id: 0},
+                blocks: hashmap!{
+                    0 => Block{
+                        small: Some(Unit{orientation: Orientation::Up, color: Color::Red}),
+                        large: None,
+                        id: 0,
+                        neighbour_ids: NeighbourIds::new(None, None, None, Some(1))
+                    },
+                    1 => Block{
+                        small: Some(Unit{orientation: Orientation::Left, color: Color::Red}),
+                        large: None,
+                        id: 1,
+                        neighbour_ids: NeighbourIds::new(None, None, Some(0), None)
+                    },
+                }
+            };
+            assert!(node.available_moves().is_empty());
+        }
+
+        {
+            let node = Node2{
+                player: Player{block_id: 0},
+                blocks: hashmap!{
+                    0 => Block{
+                        small: None,
+                        large: Some(Unit{orientation: Orientation::Up, color: Color::Red}),
+                        id: 0,
+                        neighbour_ids: NeighbourIds::new(None, None, None, Some(1))
+                    },
+                    1 => Block{
+                        small: None,
+                        large: Some(Unit{orientation: Orientation::Left, color: Color::Red}),
+                        id: 1,
+                        neighbour_ids: NeighbourIds::new(None, None, Some(0), None)
+                    },
+                }
+            };
+            assert!(node.available_moves().is_empty());
+        }
+    }
+
+    #[test]
+    fn test_moves_not_limited_by_unit_type_if_current_unit_does_not_move() {
+        {
+            let node = Node2{
+                player: Player{block_id: 0},
+                blocks: hashmap!{
+                    0 => Block{
+                        small: Some(Unit{orientation: Orientation::Right, color: Color::Red}),
+                        large: None,
+                        id: 0,
+                        neighbour_ids: NeighbourIds::new(None, None, None, Some(1))
+                    },
+                    1 => Block{
+                        small: Some(Unit{orientation: Orientation::Left, color: Color::Red}),
+                        large: None,
+                        id: 1,
+                        neighbour_ids: NeighbourIds::new(None, None, Some(0), None)
+                    },
+                }
+            };
+            assert!(node.available_moves().contains(&Orientation::Right));
+        }
+
+        {
+            let node = Node2{
+                player: Player{block_id: 0},
+                blocks: hashmap!{
+                    0 => Block{
+                        small: None,
+                        large: Some(Unit{orientation: Orientation::Right, color: Color::Red}),
+                        id: 0,
+                        neighbour_ids: NeighbourIds::new(None, None, None, Some(1))
+                    },
+                    1 => Block{
+                        small: None,
+                        large: Some(Unit{orientation: Orientation::Left, color: Color::Red}),
+                        id: 1,
+                        neighbour_ids: NeighbourIds::new(None, None, Some(0), None)
+                    },
+                }
+            };
+            assert!(node.available_moves().contains(&Orientation::Right));
+        }
+    }
+
+    #[test]
     fn test_no_win_when_no_units() {
         assert_eq!(
             Node2{
@@ -263,6 +353,111 @@ mod tests {
                 }
             }.is_win(),
             true,
+        );
+    }
+
+    #[test]
+    fn test_moving_moves_player() {
+        assert_eq!(
+            Node2{
+                player: Player{block_id: 0},
+                blocks: hashmap!{
+                    0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
+                    1 => Block{small: None, large: None, id: 1, neighbour_ids: NeighbourIds::new(None, None, Some(0), None)},
+                }
+            }.moving(Orientation::Right),
+            Node2{
+                player: Player{block_id: 1},
+                blocks: hashmap!{
+                    0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
+                    1 => Block{small: None, large: None, id: 1, neighbour_ids: NeighbourIds::new(None, None, Some(0), None)},
+                }
+            }
+        );
+    }
+
+    #[test]
+    fn test_moving_moves_units() {
+        assert_eq!(
+            Node2{
+                player: Player{block_id: 0},
+                blocks: hashmap!{
+                    0 => Block{small: Some(Unit{
+                        orientation: Orientation::Up,
+                        color: Color::Red,
+                    }), large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
+                    1 => Block{small: None, large: None, id: 1, neighbour_ids: NeighbourIds::new(None, None, Some(0), None)},
+                }
+            }.moving(Orientation::Right),
+            Node2{
+                player: Player{block_id: 1},
+                blocks: hashmap!{
+                    0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
+                    1 => Block{small: Some(Unit{
+                        orientation: Orientation::Up,
+                        color: Color::Red,
+                    }), large: None, id: 1, neighbour_ids: NeighbourIds::new(None, None, Some(0), None)},
+                }
+            }
+        );
+
+        assert_eq!(
+            Node2{
+                player: Player{block_id: 0},
+                blocks: hashmap!{
+                    0 => Block{small: None, large: Some(Unit{
+                        orientation: Orientation::Left,
+                        color: Color::Red,
+                    }), id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
+                    1 => Block{small: None, large: None, id: 1, neighbour_ids: NeighbourIds::new(None, None, Some(0), None)},
+                }
+            }.moving(Orientation::Right),
+            Node2{
+                player: Player{block_id: 1},
+                blocks: hashmap!{
+                    0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
+                    1 => Block{small: None, large: Some(Unit{
+                        orientation: Orientation::Left,
+                        color: Color::Red,
+                    }), id: 1, neighbour_ids: NeighbourIds::new(None, None, Some(0), None)},
+                }
+            }
+        );
+    }
+
+    #[test]
+    fn test_units_do_not_move_if_orientation_matches_direction_of_movement() {
+        assert_eq!(
+            Node2{
+                player: Player{block_id: 0},
+                blocks: hashmap!{
+                    0 => Block{
+                        small: Some(Unit{
+                            orientation: Orientation::Right,
+                            color: Color::Red,
+                        }),
+                        large: Some(Unit{
+                            orientation: Orientation::Right,
+                            color: Color::Red,
+                        }), id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
+                    1 => Block{small: None, large: None, id: 1, neighbour_ids: NeighbourIds::new(None, None, Some(0), None)},
+                }
+            }.moving(Orientation::Right),
+            Node2{
+                player: Player{block_id: 1},
+                blocks: hashmap!{
+                    0 => Block{
+                        small: Some(Unit{
+                            orientation: Orientation::Right,
+                            color: Color::Red,
+                        }),
+                        large: Some(Unit{
+                            orientation: Orientation::Right,
+                            color: Color::Red,
+                        }), id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
+                    1 => Block{small: None, large: None, id: 1, neighbour_ids: NeighbourIds::new(None, None, Some(0), None)},
+                }
+            }
         );
     }
 }
