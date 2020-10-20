@@ -7,7 +7,7 @@ mod tests {
 
     #[test]
     fn test_available_moves_when_no_units_on_board() {
-        let two_tiles = Node2{
+        let two_tiles = Node{
             player: Player{block_id: 0},
             blocks: hashmap!{
                 0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
@@ -15,9 +15,9 @@ mod tests {
             }
         };
         assert_eq!(two_tiles.available_moves(), hashset![Orientation::Right]);
-        assert_eq!(Node2{player: Player{block_id: 1}, ..two_tiles}.available_moves(), hashset![Orientation::Left]);
+        assert_eq!(Node{player: Player{block_id: 1}, ..two_tiles}.available_moves(), hashset![Orientation::Left]);
 
-        let single_tile = Node2{
+        let single_tile = Node{
             player: Player{block_id: 0},
             blocks: hashmap!{
                 0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, None)},
@@ -25,8 +25,8 @@ mod tests {
         };
         assert_eq!(single_tile.available_moves(), hashset![]);
 
-        fn create_complex_layout(block_id: u8) -> Node2 {
-            return Node2{
+        fn create_complex_layout(block_id: u8) -> Node {
+            return Node{
                 player: Player{block_id: block_id},
                 blocks: hashmap!{
                     0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
@@ -47,8 +47,8 @@ mod tests {
 
     #[test]
     fn test_available_moves_when_units_on_board() {
-        fn create_3_x_3_layout(block_id: u8, center_unit_orientation: Orientation) -> Node2 {
-            return Node2{
+        fn create_3_x_3_layout(block_id: u8, center_unit_orientation: Orientation) -> Node {
+            return Node{
                 player: Player{block_id: block_id},
                 blocks: hashmap!{
                     0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, Some(3), None, Some(1))},
@@ -87,8 +87,8 @@ mod tests {
 
     #[test]
     fn test_can_move_into_block_only_when_all_block_units_align() {
-        fn create_3_x_3_layout(block_id: u8, orientation_small: Orientation, orientation_large: Orientation) -> Node2 {
-            return Node2{
+        fn create_3_x_3_layout(block_id: u8, orientation_small: Orientation, orientation_large: Orientation) -> Node {
+            return Node{
                 player: Player{block_id: block_id},
                 blocks: hashmap!{
                     0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, Some(3), None, Some(1))},
@@ -135,7 +135,7 @@ mod tests {
     #[test]
     fn test_only_one_unit_type_allowed_per_block() {
         {
-            let node = Node2{
+            let node = Node{
                 player: Player{block_id: 0},
                 blocks: hashmap!{
                     0 => Block{
@@ -156,7 +156,7 @@ mod tests {
         }
 
         {
-            let node = Node2{
+            let node = Node{
                 player: Player{block_id: 0},
                 blocks: hashmap!{
                     0 => Block{
@@ -180,7 +180,7 @@ mod tests {
     #[test]
     fn test_moves_not_limited_by_unit_type_if_current_unit_does_not_move() {
         {
-            let node = Node2{
+            let node = Node{
                 player: Player{block_id: 0},
                 blocks: hashmap!{
                     0 => Block{
@@ -201,7 +201,7 @@ mod tests {
         }
 
         {
-            let node = Node2{
+            let node = Node{
                 player: Player{block_id: 0},
                 blocks: hashmap!{
                     0 => Block{
@@ -225,7 +225,7 @@ mod tests {
     #[test]
     fn test_no_win_when_no_units() {
         assert_eq!(
-            Node2{
+            Node{
                 player: Player{block_id: 0},
                 blocks: hashmap!{
                     0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
@@ -239,7 +239,7 @@ mod tests {
     #[test]
     fn test_no_win_when_units_match_location_but_only_one_is_red() {
         assert_eq!(
-            Node2{
+            Node{
                 player: Player{block_id: 0},
                 blocks: hashmap!{
                     0 => Block{
@@ -269,7 +269,7 @@ mod tests {
     #[test]
     fn test_no_win_when_red_units_at_different_locations() {
         assert_eq!(
-            Node2{
+            Node{
                 player: Player{block_id: 0},
                 blocks: hashmap!{
                     0 => Block{
@@ -299,7 +299,7 @@ mod tests {
     #[test]
     fn test_no_win_when_red_units_at_same_location_but_player_is_not() {
         assert_eq!(
-            Node2{
+            Node{
                 player: Player{block_id: 0},
                 blocks: hashmap!{
                     0 => Block{
@@ -329,7 +329,7 @@ mod tests {
     #[test]
     fn test_win_when_red_units_at_same_location_as_player() {
         assert_eq!(
-            Node2{
+            Node{
                 player: Player{block_id: 1},
                 blocks: hashmap!{
                     0 => Block{
@@ -359,14 +359,14 @@ mod tests {
     #[test]
     fn test_moving_moves_player() {
         assert_eq!(
-            Node2{
+            Node{
                 player: Player{block_id: 0},
                 blocks: hashmap!{
                     0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
                     1 => Block{small: None, large: None, id: 1, neighbour_ids: NeighbourIds::new(None, None, Some(0), None)},
                 }
             }.moving(Orientation::Right),
-            Node2{
+            Node{
                 player: Player{block_id: 1},
                 blocks: hashmap!{
                     0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
@@ -379,7 +379,7 @@ mod tests {
     #[test]
     fn test_moving_moves_units() {
         assert_eq!(
-            Node2{
+            Node{
                 player: Player{block_id: 0},
                 blocks: hashmap!{
                     0 => Block{small: Some(Unit{
@@ -389,7 +389,7 @@ mod tests {
                     1 => Block{small: None, large: None, id: 1, neighbour_ids: NeighbourIds::new(None, None, Some(0), None)},
                 }
             }.moving(Orientation::Right),
-            Node2{
+            Node{
                 player: Player{block_id: 1},
                 blocks: hashmap!{
                     0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
@@ -402,7 +402,7 @@ mod tests {
         );
 
         assert_eq!(
-            Node2{
+            Node{
                 player: Player{block_id: 0},
                 blocks: hashmap!{
                     0 => Block{small: None, large: Some(Unit{
@@ -412,7 +412,7 @@ mod tests {
                     1 => Block{small: None, large: None, id: 1, neighbour_ids: NeighbourIds::new(None, None, Some(0), None)},
                 }
             }.moving(Orientation::Right),
-            Node2{
+            Node{
                 player: Player{block_id: 1},
                 blocks: hashmap!{
                     0 => Block{small: None, large: None, id: 0, neighbour_ids: NeighbourIds::new(None, None, None, Some(1))},
@@ -428,7 +428,7 @@ mod tests {
     #[test]
     fn test_units_do_not_move_if_orientation_matches_direction_of_movement() {
         assert_eq!(
-            Node2{
+            Node{
                 player: Player{block_id: 0},
                 blocks: hashmap!{
                     0 => Block{
@@ -443,7 +443,7 @@ mod tests {
                     1 => Block{small: None, large: None, id: 1, neighbour_ids: NeighbourIds::new(None, None, Some(0), None)},
                 }
             }.moving(Orientation::Right),
-            Node2{
+            Node{
                 player: Player{block_id: 1},
                 blocks: hashmap!{
                     0 => Block{

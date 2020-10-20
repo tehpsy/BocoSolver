@@ -1,19 +1,14 @@
-use std::hash::Hash;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use petgraph::graphmap::UnGraphMap;
 use std::rc::Rc;
 use std::cell::RefCell;
-use petgraph::algo;
+// use petgraph::algo;
 use enum_iterator::IntoEnumIterator;
 use maplit::hashmap;
 use maplit::hashset;
 use std::iter::FromIterator;
-
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-struct Node {
-    id: char,
-}
+use std::hash::{Hash, Hasher};
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 struct Player {
@@ -58,6 +53,7 @@ struct Unit {
     color: Color,
 }
 
+//use builder pattern to init the values -- default trait
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 struct NeighbourIds {
     up: Option<u8>,
@@ -69,10 +65,10 @@ struct NeighbourIds {
 impl NeighbourIds {
     fn new(up: Option<u8>, down: Option<u8>, left: Option<u8>, right: Option<u8>) -> NeighbourIds {
         NeighbourIds{
-            up: up,
-            down: down,
-            left: left,
-            right: right,
+            up,
+            down,
+            left,
+            right,
         }
     }
 
@@ -86,6 +82,7 @@ impl NeighbourIds {
     }
 }
 
+//use a vec of references to other 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 struct Block {
     small: Option<Unit>,
@@ -94,17 +91,55 @@ struct Block {
     neighbour_ids: NeighbourIds,
 }
 
-// #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-#[derive(Eq, PartialEq, Debug)]
-struct Node2 {
-    player: Player,
+struct Blocks {
     blocks: HashMap<u8, Block>,
 }
 
-impl Node2 {
+impl Hash for Blocks {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.blocks.iter().for_each(|block| {
+            block.hash(state);
+        });
+    }
+}
+
+impl Copy for Blocks {}
+
+impl Clone for Blocks {
+    fn clone(&self) -> Blocks {
+        // return Blocks{self.blocks.clone()}
+        *self
+    }
+}
+
+// #[derive(Clone)]
+// #[derive(Ord)]
+#[derive(Copy, Ord, Clone)]
+struct Node {
+    player: Player,
+    blocks: Blocks,
+}
+
+//look for hashing a hashmap in rust
+
+impl Hash for Node {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.player.hash(state);
+        self.blocks.hash(state);
+    }
+}
+
+// impl<K, V> HashMap<K, V> {
+//     fn persist(&self, prefix: &str, data: &HashMap<K, HashSet<V>>) {
+//         self.dirty.set(true);
+//         self.data.set(Some(data.clone()));
+//     }
+// }
+
+impl Node {
     fn available_moves(&self) -> HashSet<Orientation> {
         let player_block_id = self.player.block_id;
-        let block = self.blocks[&player_block_id];
+        let block = self.blocks.blocks[&player_block_id];
         let neighbour_ids = block.neighbour_ids;
         let vector: Vec<Orientation> = Orientation::into_enum_iter()
         .filter(|orientation| {
@@ -112,7 +147,7 @@ impl Node2 {
         })
         .filter(|orientation| {
             let neighbour_id = neighbour_ids.neighbour_towards(orientation).unwrap();
-            let neighbour = self.blocks[&neighbour_id];
+            let neighbour = self.blocks.blocks[&neighbour_id];
             let small_unit_ok = neighbour.small == None || 
                 (neighbour.small.unwrap().orientation.opposite() == *orientation && (block.small == None || block.small.unwrap().orientation == *orientation));
             let large_unit_ok = neighbour.large == None ||
@@ -124,12 +159,12 @@ impl Node2 {
         return HashSet::from_iter(vector);
     }
 
-    fn moving(&self, orientation: Orientation) -> Node2 {
+    fn moving(&self, orientation: Orientation) -> Node {
         let player_block_id = self.player.block_id;
-        let block = self.blocks[&player_block_id];
+        let block = self.blocks.blocks[&player_block_id];
         let neighbour_ids = block.neighbour_ids;
         let neighbour_id = neighbour_ids.neighbour_towards(&orientation).unwrap();
-        let mut blocks = self.blocks.clone();
+        let mut blocks = self.blocks.blocks.clone();
         let mut neighbour_block = blocks.get_mut(&neighbour_id).unwrap().clone();
         let mut player_block = blocks.get_mut(&player_block_id).unwrap().clone();
         
@@ -146,21 +181,22 @@ impl Node2 {
         blocks.insert(neighbour_id, neighbour_block);
         blocks.insert(player_block_id, player_block);
         
-        return Node2{
+        return Node{
             player: Player{block_id: neighbour_id},
-            blocks: blocks
+            blocks: Blocks{blocks}
         }
     }
 
-    // fn next_nodes(&self) -> Vec<Node2> {
-    //     //where can player move?
-    //     //for each move, do it
-    //     //find what units have moved as a result
-    // }
+    fn next_nodes(&self) -> Vec<Node> {
+        return self.available_moves()
+            .into_iter()
+            .map(|orientation| { return self.moving(orientation); })
+            .collect();
+    }
 
     fn is_win(&self) -> bool {
         let player_block_id = self.player.block_id;
-        let block = self.blocks[&player_block_id];
+        let block = self.blocks.blocks[&player_block_id];
         return match (block.small, block.large) {
             (Some(small), Some(large)) => small.color == Color::Red && large.color == Color::Red,
             _ => false,
@@ -168,55 +204,34 @@ impl Node2 {
     }
 }
 
-impl Node {
-    fn next_nodes(&self) -> Vec<Node> {
-        match self.id {
-            'a' => return vec![Node{id: 'b'}],
-            'b' => return vec![Node{id: 'a'}, Node{id: 'c'}, Node{id: 'd'}],
-            'c' => return vec![Node{id: 'b'}, Node{id: 'f'}],
-            'd' => return vec![Node{id: 'b'}, Node{id: 'e'}, Node{id: 'h'}],
-            'e' => return vec![Node{id: 'd'}, Node{id: 'f'}],
-            'f' => return vec![Node{id: 'c'}, Node{id: 'e'}, Node{id: 'g'}],
-            'g' => return vec![Node{id: 'f'}],
-            'h' => return vec![Node{id: 'd'}],
-            _ => return vec![],
-        };
-    }
-
-    fn is_win(&self) -> bool {
-        return self.id == 'e' || self.id == 'h';
-    }
-}
-
-// fn main() {
-//     let mut graph = UnGraphMap::<_, ()>::new();
-//     let first_node = Node{id:'a'};
-
-//     graph.add_node(&first_node);
-//     build(&first_node, &mut graph);
-
-//     assert_eq!(graph.node_count(), 7);
-// }
-
-// fn build<'a>(node: &'a Node, network: &'a mut UnGraphMap::<&'a Node, ()>) {
-//     node.next_nodes().iter().for_each(|next| {
-//         if !network.contains_node(next) {
-//             network.add_node(next);
-//             build(next, network);
-//         }
-
-//         if !network.contains_edge(node, next) {
-//             network.add_edge(node, next, ());
-//         }
-//     });
-// }
-
 fn main() {
     let graph = UnGraphMap::<Node, ()>::new();
     let rc = RefCell::new(graph); 
     let c = Rc::new(rc);
 
-    let first_node = Node{id:'a'};
+    let first_node = Node{
+        player: Player{block_id: 0},
+        blocks: hashmap!{
+            0 => Block{
+                small: Some(Unit{
+                    orientation: Orientation::Up,
+                    color: Color::Red,
+                }),
+                large: None,
+                id: 0,
+                neighbour_ids: NeighbourIds::new(None, None, None, Some(1))
+            },
+            1 => Block{
+                small: None,
+                large: Some(Unit{
+                    orientation: Orientation::Left,
+                    color: Color::Red,
+                }),
+                id: 1,
+                neighbour_ids: NeighbourIds::new(None, None, Some(0), None)
+            },
+        }
+    };
 
     c.borrow_mut().add_node(first_node);
     
@@ -251,107 +266,6 @@ fn can_win(network: & UnGraphMap::<Node, ()>) -> bool {
         None => return false,
     }
 }
-
-// fn build<'a>(node: &'a Node, network: &'a mut UnGraphMap::<&'a Node, ()>) {
-//     node.next_nodes().iter().for_each(|next| {
-//         if !network.contains_node(next) {
-//             network.add_node(next);
-//             build(next, network);
-//         }
-
-//         if !network.contains_edge(node, next) {
-//             network.add_edge(node, next, ());
-//         }
-//     });
-// }
-
-
-
-// use std::hash::Hash;
-// use petgraph::graphmap::UnGraphMap;
-// // use petgraph::graph::Graph;
-
-// fn main() {
-//     // let board = Board{};
-//     // let mut history = Vec::new();
-//     // history.push(board);
-//     // let solutions = solve(history);
-
-//     //we need to build the network first, then solve it
-//     //otherwise different branches can cover the same nodes
-
-//     let mut graph = UnGraphMap::<_, ()>::new();
-//     let first_node = Board{foo:'a'};
-
-//     graph.add_node(&first_node);
-//     build(&first_node, &mut graph);
-// }
-
-// fn build<'a>(node: &'a Board, network: &'a mut UnGraphMap::<&'a Board, ()>) {
-//     node.next_nodes().iter().for_each(|next| {
-//         if !network.contains_node(next) {
-//             network.add_node(next);
-//             build(next, network);
-//         }
-
-//         if !network.contains_edge(node, next) {
-//             network.add_edge(node, next, ());
-//         }
-//     });
-// }
-
-// #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-// struct Board {
-//     foo: char
-// }
-
-// impl Board {
-//     fn next_nodes(&self) -> Vec<Board> {
-//         match self.foo {
-//             'a' => return vec![Board{foo: 'b'}],
-//             'b' => return vec![Board{foo: 'a'}, Board{foo: 'c'}, Board{foo: 'd'}],
-//             'c' => return vec![Board{foo: 'b'}, Board{foo: 'f'}],
-//             'd' => return vec![Board{foo: 'b'}, Board{foo: 'e'}],
-//             'e' => return vec![Board{foo: 'd'}, Board{foo: 'f'}],
-//             'f' => return vec![Board{foo: 'c'}, Board{foo: 'e'}, Board{foo: 'g'}],
-//             'g' => return vec![Board{foo: 'f'}],
-//             _ => return vec![],
-//         };
-//     }
-// }
-
-// // type History = Vec<Board>;
-
-// // fn solve(history: History) -> Vec<History> {
-// //     let board = history.last().unwrap();
-// //     let nextBoards = board.next(history.as_slice());
-// //     let result = vec![];
-// //     nextBoards.iter().for_each(|board| {
-// //         let vec = vec![];
-// //         vec.extend_from_slice(history.as_slice());
-// //         vec.push(*board);
-// //         result.append(&mut solve(vec));
-// //     });
-
-// //     return result;
-// // }
-
-// // impl Board {
-// //     fn next(&self, history: &[Board]) -> Vec<Board> {
-// //         /*
-// //         let tiles = board.tiles
-// //             .filter(hasBlocks)
-// //             .filter(canAccess)
-// //             .filter(playNotHere)
-    
-// //         return tiles
-// //             .availableMoves
-// //             .map(board(move: tile, direction: direction))
-// //             .filter(notIn: history)        
-// //         */
-// //         return vec![];
-// //     }
-// // }
 
 #[cfg(test)]
 mod test;
