@@ -460,4 +460,94 @@ mod tests {
             }
         );
     }
+
+    #[test]
+    fn test_board_building() {
+        let graph = UnGraphMap::<NetworkNode, ()>::new();
+        let rc = RefCell::new(graph); 
+        let c = Rc::new(rc);
+
+        let first_board = Board{
+            player: Player{block_id: 0},
+            blocks: hashmap!{
+                0 => Block{
+                    small: Some(Unit{
+                        orientation: Orientation::Up,
+                        color: Color::Red,
+                    }),
+                    large: None,
+                    id: 0,
+                    neighbour_ids: NeighbourIds::new(None, None, None, Some(1))
+                },
+                1 => Block{
+                    small: None,
+                    large: Some(Unit{
+                        orientation: Orientation::Left,
+                        color: Color::Red,
+                    }),
+                    id: 1,
+                    neighbour_ids: NeighbourIds::new(None, None, Some(0), None)
+                },
+            }
+        };
+        let mut boards: HashMap<u64, Board> = hashmap!{};
+        
+        build(first_board, &mut boards, &mut c.borrow_mut());
+
+        assert_eq!(c.borrow().node_count(), 2);
+        assert_eq!(c.borrow().edge_count(), 1);
+        assert_eq!(boards.len(), c.borrow().node_count());
+        assert_eq!(can_win(&boards, & c.borrow()), true);
+    }
+
+    #[test]
+    fn test_board_building_2() {
+        let graph = UnGraphMap::<NetworkNode, ()>::new();
+        let rc = RefCell::new(graph); 
+        let c = Rc::new(rc);
+
+        let first_board = Board{
+            player: Player{block_id: 0},
+            blocks: hashmap!{
+                0 => Block{
+                    small: Some(Unit{
+                        orientation: Orientation::Up,
+                        color: Color::Red,
+                    }),
+                    large: None,
+                    id: 0,
+                    neighbour_ids: NeighbourIds::new(None, Some(2), None, Some(1))
+                },
+                1 => Block{
+                    small: None,
+                    large: Some(Unit{
+                        orientation: Orientation::Left,
+                        color: Color::Red,
+                    }),
+                    id: 1,
+                    neighbour_ids: NeighbourIds::new(None, Some(3), Some(0), None)
+                },
+                2 => Block{
+                    small: None,
+                    large: None,
+                    id: 2,
+                    neighbour_ids: NeighbourIds::new(Some(0), None, None, Some(3))
+                },
+                3 => Block{
+                    small: None,
+                    large: None,
+                    id: 3,
+                    neighbour_ids: NeighbourIds::new(Some(1), None, Some(2), None)
+                },
+            }
+        };
+        let mut boards: HashMap<u64, Board> = hashmap!{};
+        
+        build(first_board, &mut boards, &mut c.borrow_mut());
+
+        assert_eq!(c.borrow().node_count(), 14);
+        assert_eq!(c.borrow().edge_count(), 13);
+        assert_eq!(boards.len(), c.borrow().node_count());
+        assert_eq!(can_win(&boards, & c.borrow()), true);
+    }
 }

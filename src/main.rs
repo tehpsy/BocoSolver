@@ -91,20 +91,18 @@ struct Block {
     neighbour_ids: NeighbourIds,
 }
 
-// #[derive(Clone)]
-// #[derive(Ord)]
+#[derive(Copy, Eq, PartialEq, Ord, PartialOrd, Clone, Hash)]
+struct NetworkNode {
+    hash_id: u64,
+}
+
+//look for hashing a hashmap in rust
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct Board {
     player: Player,
     blocks: HashMap<u8, Block>,
 }
-
-#[derive(Copy, Eq, PartialEq, Ord, PartialOrd, Clone)]
-struct NetworkNode {
-    id: u64,
-}
-
-//look for hashing a hashmap in rust
 
 impl Hash for Board {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -115,12 +113,11 @@ impl Hash for Board {
     }
 }
 
-// impl<K, V> HashMap<K, V> {
-//     fn persist(&self, prefix: &str, data: &HashMap<K, HashSet<V>>) {
-//         self.dirty.set(true);
-//         self.data.set(Some(data.clone()));
-//     }
-// }
+fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    let mut s = std::collections::hash_map::DefaultHasher::new();
+    t.hash(&mut s);
+    s.finish()
+}
 
 impl Board {
     fn available_moves(&self) -> HashSet<Orientation> {
@@ -191,68 +188,96 @@ impl Board {
 }
 
 fn main() {
-    // let graph = UnGraphMap::<NetworkNode, ()>::new();
-    // let rc = RefCell::new(graph); 
-    // let c = Rc::new(rc);
+    let graph = UnGraphMap::<NetworkNode, ()>::new();
+    let rc = RefCell::new(graph); 
+    let c = Rc::new(rc);
 
-    // let first_node = Node{
-    //     player: Player{block_id: 0},
-    //     blocks: hashmap!{
-    //         0 => Block{
-    //             small: Some(Unit{
-    //                 orientation: Orientation::Up,
-    //                 color: Color::Red,
-    //             }),
-    //             large: None,
-    //             id: 0,
-    //             neighbour_ids: NeighbourIds::new(None, None, None, Some(1))
-    //         },
-    //         1 => Block{
-    //             small: None,
-    //             large: Some(Unit{
-    //                 orientation: Orientation::Left,
-    //                 color: Color::Red,
-    //             }),
-    //             id: 1,
-    //             neighbour_ids: NeighbourIds::new(None, None, Some(0), None)
-    //         },
-    //     }
-    // };
-
-    // c.borrow_mut().add_node(first_node);
+    let first_board = Board{
+        player: Player{block_id: 0},
+        blocks: hashmap!{
+            0 => Block{
+                small: Some(Unit{
+                    orientation: Orientation::Left,
+                    color: Color::Red,
+                }),
+                large: None,
+                id: 0,
+                neighbour_ids: NeighbourIds::new(None, Some(2), None, Some(1))
+            },
+            1 => Block{
+                small: None,
+                large: Some(Unit{
+                    orientation: Orientation::Left,
+                    color: Color::Red,
+                }),
+                id: 1,
+                neighbour_ids: NeighbourIds::new(None, Some(3), Some(0), None)
+            },
+            2 => Block{
+                small: None,
+                large: None,
+                id: 2,
+                neighbour_ids: NeighbourIds::new(Some(0), None, None, Some(3))
+            },
+            3 => Block{
+                small: None,
+                large: None,
+                id: 3,
+                neighbour_ids: NeighbourIds::new(Some(1), None, Some(2), None)
+            },
+        }
+    };
+    let mut boards: HashMap<u64, Board> = hashmap!{};
     
-    // build(&first_node, &mut c.borrow_mut());
+    build(first_board, &mut boards, &mut c.borrow_mut());
 
-    // assert_eq!(c.borrow().node_count(), 8);
-    // assert_eq!(c.borrow().edge_count(), 8);
+    assert_eq!(c.borrow().node_count(), 14);
+    assert_eq!(c.borrow().edge_count(), 13);
+    assert_eq!(boards.len(), c.borrow().node_count());
 
-    // assert_eq!(can_win(& c.borrow()), true);
+    assert_eq!(can_win(&boards, & c.borrow()), true);
     
     // assert_eq!(algo::has_path_connecting(c.borrow(), first_node, first_node, None), true);
     // println!(algo::dijkstra(c.borrow(), first_node, goal: Option<G::NodeId>, 1))
     // println!("{:?}", algo::dijkstra(c.borrow(), first_node, None, |_| 1));
 }
 
-// fn build(node: & Node, network: &mut UnGraphMap::<Node, ()>) {
-//     node.next_nodes().iter().for_each(|next| {
-        
-//         if !network.contains_node(*next) {
-//             network.add_node(*next);
-//             build(next, network);
-//         }
+fn build(board: Board, boards: &mut HashMap<u64, Board>, network: &mut UnGraphMap::<NetworkNode, ()>) {
+    let board_hash = calculate_hash(&board);
+    let board_node = NetworkNode{hash_id: board_hash};
 
-//         if !network.contains_edge(*node, *next) {
-//             network.add_edge(*node, *next, ());
-//         }
-//     });
-// }
+    // println!("{:?}", board);
 
-// fn can_win(network: & UnGraphMap::<Node, ()>) -> bool {
-//     match network.nodes().find(|node| { node.is_win() }) {
-//         Some(_) => return true,
-//         None => return false,
-//     }
-// }
+    network.add_node(board_node);
+    let board_clone = board.clone();
+    let board_clone_hash = calculate_hash(&board_clone);
+    assert_eq!(board_clone_hash, board_hash);
+    boards.insert(board_hash, board.clone());
+    // println!("{:?}", algo::dijkstra(c.borrow(), first_node, None, |_| 1));
+
+    board.next_boards().iter().for_each(|next| {
+        let next_node = NetworkNode{hash_id: calculate_hash(&next)};
+
+        if !network.contains_node(next_node) {
+            build(next.clone(), boards, network);
+        }
+
+        if !network.contains_edge(board_node, next_node) {
+            network.add_edge(board_node, next_node, ());
+        }
+    });
+}
+
+fn can_win(boards: &HashMap<u64, Board>, network: & UnGraphMap::<NetworkNode, ()>) -> bool {
+    match network.nodes().find(|node| { 
+        let hash_id = node.hash_id;
+        let board = &boards[&hash_id];
+        return board.is_win();
+    }) {
+        Some(_) => return true,
+        None => return false,
+    }
+}
 
 #[cfg(test)]
 mod test;
