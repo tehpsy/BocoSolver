@@ -91,41 +91,27 @@ struct Block {
     neighbour_ids: NeighbourIds,
 }
 
-struct Blocks {
+// #[derive(Clone)]
+// #[derive(Ord)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct Board {
+    player: Player,
     blocks: HashMap<u8, Block>,
 }
 
-impl Hash for Blocks {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.blocks.iter().for_each(|block| {
-            block.hash(state);
-        });
-    }
-}
-
-impl Copy for Blocks {}
-
-impl Clone for Blocks {
-    fn clone(&self) -> Blocks {
-        // return Blocks{self.blocks.clone()}
-        *self
-    }
-}
-
-// #[derive(Clone)]
-// #[derive(Ord)]
-#[derive(Copy, Ord, Clone)]
-struct Node {
-    player: Player,
-    blocks: Blocks,
+#[derive(Copy, Eq, PartialEq, Ord, PartialOrd, Clone)]
+struct NetworkNode {
+    id: u64,
 }
 
 //look for hashing a hashmap in rust
 
-impl Hash for Node {
+impl Hash for Board {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.player.hash(state);
-        self.blocks.hash(state);
+        self.blocks.iter().for_each(|block| {
+            block.hash(state);
+        });
     }
 }
 
@@ -136,10 +122,10 @@ impl Hash for Node {
 //     }
 // }
 
-impl Node {
+impl Board {
     fn available_moves(&self) -> HashSet<Orientation> {
         let player_block_id = self.player.block_id;
-        let block = self.blocks.blocks[&player_block_id];
+        let block = self.blocks[&player_block_id];
         let neighbour_ids = block.neighbour_ids;
         let vector: Vec<Orientation> = Orientation::into_enum_iter()
         .filter(|orientation| {
@@ -147,7 +133,7 @@ impl Node {
         })
         .filter(|orientation| {
             let neighbour_id = neighbour_ids.neighbour_towards(orientation).unwrap();
-            let neighbour = self.blocks.blocks[&neighbour_id];
+            let neighbour = self.blocks[&neighbour_id];
             let small_unit_ok = neighbour.small == None || 
                 (neighbour.small.unwrap().orientation.opposite() == *orientation && (block.small == None || block.small.unwrap().orientation == *orientation));
             let large_unit_ok = neighbour.large == None ||
@@ -159,12 +145,12 @@ impl Node {
         return HashSet::from_iter(vector);
     }
 
-    fn moving(&self, orientation: Orientation) -> Node {
+    fn moving(&self, orientation: Orientation) -> Board {
         let player_block_id = self.player.block_id;
-        let block = self.blocks.blocks[&player_block_id];
+        let block = self.blocks[&player_block_id];
         let neighbour_ids = block.neighbour_ids;
         let neighbour_id = neighbour_ids.neighbour_towards(&orientation).unwrap();
-        let mut blocks = self.blocks.blocks.clone();
+        let mut blocks = self.blocks.clone();
         let mut neighbour_block = blocks.get_mut(&neighbour_id).unwrap().clone();
         let mut player_block = blocks.get_mut(&player_block_id).unwrap().clone();
         
@@ -181,13 +167,13 @@ impl Node {
         blocks.insert(neighbour_id, neighbour_block);
         blocks.insert(player_block_id, player_block);
         
-        return Node{
+        return Board{
             player: Player{block_id: neighbour_id},
-            blocks: Blocks{blocks}
+            blocks: blocks
         }
     }
 
-    fn next_nodes(&self) -> Vec<Node> {
+    fn next_boards(&self) -> Vec<Board> {
         return self.available_moves()
             .into_iter()
             .map(|orientation| { return self.moving(orientation); })
@@ -196,7 +182,7 @@ impl Node {
 
     fn is_win(&self) -> bool {
         let player_block_id = self.player.block_id;
-        let block = self.blocks.blocks[&player_block_id];
+        let block = self.blocks[&player_block_id];
         return match (block.small, block.large) {
             (Some(small), Some(large)) => small.color == Color::Red && large.color == Color::Red,
             _ => false,
@@ -205,67 +191,68 @@ impl Node {
 }
 
 fn main() {
-    let graph = UnGraphMap::<Node, ()>::new();
-    let rc = RefCell::new(graph); 
-    let c = Rc::new(rc);
+    // let graph = UnGraphMap::<NetworkNode, ()>::new();
+    // let rc = RefCell::new(graph); 
+    // let c = Rc::new(rc);
 
-    let first_node = Node{
-        player: Player{block_id: 0},
-        blocks: hashmap!{
-            0 => Block{
-                small: Some(Unit{
-                    orientation: Orientation::Up,
-                    color: Color::Red,
-                }),
-                large: None,
-                id: 0,
-                neighbour_ids: NeighbourIds::new(None, None, None, Some(1))
-            },
-            1 => Block{
-                small: None,
-                large: Some(Unit{
-                    orientation: Orientation::Left,
-                    color: Color::Red,
-                }),
-                id: 1,
-                neighbour_ids: NeighbourIds::new(None, None, Some(0), None)
-            },
-        }
-    };
+    // let first_node = Node{
+    //     player: Player{block_id: 0},
+    //     blocks: hashmap!{
+    //         0 => Block{
+    //             small: Some(Unit{
+    //                 orientation: Orientation::Up,
+    //                 color: Color::Red,
+    //             }),
+    //             large: None,
+    //             id: 0,
+    //             neighbour_ids: NeighbourIds::new(None, None, None, Some(1))
+    //         },
+    //         1 => Block{
+    //             small: None,
+    //             large: Some(Unit{
+    //                 orientation: Orientation::Left,
+    //                 color: Color::Red,
+    //             }),
+    //             id: 1,
+    //             neighbour_ids: NeighbourIds::new(None, None, Some(0), None)
+    //         },
+    //     }
+    // };
 
-    c.borrow_mut().add_node(first_node);
+    // c.borrow_mut().add_node(first_node);
     
-    build(&first_node, &mut c.borrow_mut());
+    // build(&first_node, &mut c.borrow_mut());
 
-    assert_eq!(c.borrow().node_count(), 8);
-    assert_eq!(c.borrow().edge_count(), 8);
+    // assert_eq!(c.borrow().node_count(), 8);
+    // assert_eq!(c.borrow().edge_count(), 8);
 
-    assert_eq!(can_win(& c.borrow()), true);
+    // assert_eq!(can_win(& c.borrow()), true);
+    
     // assert_eq!(algo::has_path_connecting(c.borrow(), first_node, first_node, None), true);
     // println!(algo::dijkstra(c.borrow(), first_node, goal: Option<G::NodeId>, 1))
     // println!("{:?}", algo::dijkstra(c.borrow(), first_node, None, |_| 1));
 }
 
-fn build(node: & Node, network: &mut UnGraphMap::<Node, ()>) {
-    node.next_nodes().iter().for_each(|next| {
+// fn build(node: & Node, network: &mut UnGraphMap::<Node, ()>) {
+//     node.next_nodes().iter().for_each(|next| {
         
-        if !network.contains_node(*next) {
-            network.add_node(*next);
-            build(next, network);
-        }
+//         if !network.contains_node(*next) {
+//             network.add_node(*next);
+//             build(next, network);
+//         }
 
-        if !network.contains_edge(*node, *next) {
-            network.add_edge(*node, *next, ());
-        }
-    });
-}
+//         if !network.contains_edge(*node, *next) {
+//             network.add_edge(*node, *next, ());
+//         }
+//     });
+// }
 
-fn can_win(network: & UnGraphMap::<Node, ()>) -> bool {
-    match network.nodes().find(|node| { node.is_win() }) {
-        Some(_) => return true,
-        None => return false,
-    }
-}
+// fn can_win(network: & UnGraphMap::<Node, ()>) -> bool {
+//     match network.nodes().find(|node| { node.is_win() }) {
+//         Some(_) => return true,
+//         None => return false,
+//     }
+// }
 
 #[cfg(test)]
 mod test;
