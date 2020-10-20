@@ -107,8 +107,8 @@ struct Board {
 impl Hash for Board {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.player.hash(state);
-        self.blocks.iter().for_each(|block| {
-            block.hash(state);
+        self.blocks.iter().for_each(|(_, value)| {
+            value.hash(state);
         });
     }
 }
@@ -131,16 +131,50 @@ impl Board {
         .filter(|orientation| {
             let neighbour_id = neighbour_ids.neighbour_towards(orientation).unwrap();
             let neighbour = self.blocks[&neighbour_id];
-            let small_unit_ok = neighbour.small == None || 
-                (neighbour.small.unwrap().orientation.opposite() == *orientation && (block.small == None || block.small.unwrap().orientation == *orientation));
-            let large_unit_ok = neighbour.large == None ||
-                (neighbour.large.unwrap().orientation.opposite() == *orientation && (block.large == None || block.large.unwrap().orientation == *orientation));
-            return small_unit_ok && large_unit_ok;
+            
+            if (neighbour.small != None && neighbour.small.unwrap().orientation.opposite() != *orientation) ||
+               (neighbour.large != None && neighbour.large.unwrap().orientation.opposite() != *orientation) { 
+                return false
+            } else {
+                return match (neighbour.small, neighbour.large) {
+                    (None, Some(_)) => 
+                        (block.large == None || block.large.unwrap().orientation == *orientation),
+                    (Some(_), None) => 
+                        (block.small == None || block.small.unwrap().orientation == *orientation) &&
+                        (block.large == None || block.large.unwrap().orientation == *orientation),
+                    (Some(_), Some(_)) => block.small == None && block.large == None,
+                    (None, None) => true,
+                };
+            }
+
+            /*
+            can't move if
+            dest large or small is not in opposite orientation
+
+            if dest has nothing, then we can move, dragging everything 
+            if dest has only small, then we can only move if we won't drag anything
+            if dest has only large, then we can only move if source has no large or wouldn't be dragged
+            if dest has both, then we can only move if source has neither
+            */
+
+//             //there's no dest.large
+//             //or dest.large orientation is opposite orientation
+//             let neighbour_id = neighbour_ids.neighbour_towards(orientation).unwrap();
+//             let neighbour = self.blocks[&neighbour_id];
+//             let small_unit_ok = neighbour.small == None || 
+//                 (neighbour.small.unwrap().orientation.opposite() == *orientation && (block.small == None || block.small.unwrap().orientation == *orientation));
+//             let large_unit_ok = 
+//                 neighbour.large == None ||
+//                 (neighbour.large.unwrap().orientation.opposite() == *orientation && (block.large == None || block.large.unwrap().orientation == *orientation));
+            
+//             return small_unit_ok && large_unit_ok;
         })
         .collect();
 
         return HashSet::from_iter(vector);
     }
+
+    //TODO combine available_moves and moving into a single move() -> Board? method
 
     fn moving(&self, orientation: Orientation) -> Board {
         let player_block_id = self.player.block_id;
@@ -151,7 +185,8 @@ impl Board {
         let mut neighbour_block = blocks.get_mut(&neighbour_id).unwrap().clone();
         let mut player_block = blocks.get_mut(&player_block_id).unwrap().clone();
         
-        if player_block.small != None && player_block.small.unwrap().orientation != orientation {
+        if player_block.small != None &&
+            (player_block.small.unwrap().orientation != orientation || (player_block.large != None && (player_block.large.unwrap().orientation != orientation))) {
             neighbour_block.small = player_block.small;
             player_block.small = None;
         }
@@ -164,10 +199,12 @@ impl Board {
         blocks.insert(neighbour_id, neighbour_block);
         blocks.insert(player_block_id, player_block);
         
-        return Board{
+        let board = Board{
             player: Player{block_id: neighbour_id},
             blocks: blocks
-        }
+        };
+        let hash = calculate_hash(&board);
+        return board;
     }
 
     fn next_boards(&self) -> Vec<Board> {
@@ -192,55 +229,142 @@ fn main() {
     let rc = RefCell::new(graph); 
     let c = Rc::new(rc);
 
+    // let first_board = Board{
+    //     player: Player{block_id: 0},
+    //     blocks: hashmap!{
+    //         0 => Block{
+    //             small: Some(Unit{
+    //                 orientation: Orientation::Left,
+    //                 color: Color::Red,
+    //             }),
+    //             large: None,
+    //             id: 0,
+    //             neighbour_ids: NeighbourIds::new(None, Some(2), None, Some(1))
+    //         },
+    //         1 => Block{
+    //             small: None,
+    //             large: Some(Unit{
+    //                 orientation: Orientation::Left,
+    //                 color: Color::Red,
+    //             }),
+    //             id: 1,
+    //             neighbour_ids: NeighbourIds::new(None, Some(3), Some(0), None)
+    //         },
+    //         2 => Block{
+    //             small: None,
+    //             large: None,
+    //             id: 2,
+    //             neighbour_ids: NeighbourIds::new(Some(0), None, None, Some(3))
+    //         },
+    //         3 => Block{
+    //             small: None,
+    //             large: None,
+    //             id: 3,
+    //             neighbour_ids: NeighbourIds::new(Some(1), None, Some(2), None)
+    //         },
+    //     }
+    // };
+
     let first_board = Board{
-        player: Player{block_id: 0},
+        player: Player{block_id: 8},
         blocks: hashmap!{
             0 => Block{
-                small: Some(Unit{
-                    orientation: Orientation::Left,
-                    color: Color::Red,
-                }),
+                small: None,
                 large: None,
                 id: 0,
-                neighbour_ids: NeighbourIds::new(None, Some(2), None, Some(1))
+                neighbour_ids: NeighbourIds::new(None, Some(5), None, Some(1))
             },
             1 => Block{
                 small: None,
-                large: Some(Unit{
-                    orientation: Orientation::Left,
-                    color: Color::Red,
-                }),
+                large: None,
                 id: 1,
-                neighbour_ids: NeighbourIds::new(None, Some(3), Some(0), None)
+                neighbour_ids: NeighbourIds::new(None, Some(6), Some(0), Some(2))
             },
             2 => Block{
                 small: None,
                 large: None,
                 id: 2,
-                neighbour_ids: NeighbourIds::new(Some(0), None, None, Some(3))
+                neighbour_ids: NeighbourIds::new(None, Some(7), Some(1), Some(3))
             },
             3 => Block{
                 small: None,
-                large: None,
+                large: Some(Unit{
+                    orientation: Orientation::Down,
+                    color: Color::Black,
+                }),
                 id: 3,
-                neighbour_ids: NeighbourIds::new(Some(1), None, Some(2), None)
+                neighbour_ids: NeighbourIds::new(None, Some(8), Some(2), Some(4))
+            },
+            4 => Block{
+                small: None,
+                large: None,
+                id: 4,
+                neighbour_ids: NeighbourIds::new(None, Some(9), Some(3), None)
+            },
+            5 => Block{
+                small: None,
+                large: None,
+                id: 5,
+                neighbour_ids: NeighbourIds::new(Some(0), None, None, Some(6))
+            },
+            6 => Block{
+                small: None,
+                large: Some(Unit{
+                    orientation: Orientation::Up,
+                    color: Color::Red,
+                }),
+                id: 6,
+                neighbour_ids: NeighbourIds::new(Some(1), None, Some(5), Some(7))
+            },
+            7 => Block{
+                small: None,
+                large: Some(Unit{
+                    orientation: Orientation::Left,
+                    color: Color::Black,
+                }),
+                id: 7,
+                neighbour_ids: NeighbourIds::new(Some(2), None, Some(6), Some(8))
+            },
+            8 => Block{
+                small: None,
+                large: None,
+                id: 8,
+                neighbour_ids: NeighbourIds::new(Some(3), None, Some(7), Some(9))
+            },
+            9 => Block{
+                small: Some(Unit{
+                    orientation: Orientation::Up,
+                    color: Color::Red,
+                }),
+                large: None,
+                id: 9,
+                neighbour_ids: NeighbourIds::new(Some(4), None, Some(8), None)
             },
         }
     };
+
     let mut boards: HashMap<u64, Board> = hashmap!{};
     
     build(first_board, &mut boards, &mut c.borrow_mut());
 
-    assert_eq!(c.borrow().node_count(), 14);
-    assert_eq!(c.borrow().edge_count(), 13);
-    assert_eq!(boards.len(), c.borrow().node_count());
+    // assert_eq!(c.borrow().node_count(), 14);
+    // assert_eq!(c.borrow().edge_count(), 13);
+    // assert_eq!(boards.len(), c.borrow().node_count());
 
-    assert_eq!(can_win(&boards, & c.borrow()), true);
+    // assert_eq!(can_win(&boards, & c.borrow()), true);
     
     // assert_eq!(algo::has_path_connecting(c.borrow(), first_node, first_node, None), true);
     // println!(algo::dijkstra(c.borrow(), first_node, goal: Option<G::NodeId>, 1))
     // println!("{:?}", algo::dijkstra(c.borrow(), first_node, None, |_| 1));
 }
+
+// fn print(board: &Board) {
+//     let player_block_id = board.player.block_id;
+//     let mut keys: Vec<u8> = vec![];
+
+
+//     let keys = board.blocks.keys().collect().sort();
+// }
 
 fn build(board: Board, boards: &mut HashMap<u64, Board>, network: &mut UnGraphMap::<NetworkNode, ()>) {
     let board_hash = calculate_hash(&board);
