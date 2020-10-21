@@ -4,16 +4,25 @@ use petgraph::graphmap::UnGraphMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 // use petgraph::algo;
+// use petgraph::algo::dijkstra;
+use petgraph::algo::astar;
 use enum_iterator::IntoEnumIterator;
 use maplit::hashmap;
-use maplit::hashset;
+// use maplit::hashset;
 use std::iter::FromIterator;
 use std::hash::{Hash, Hasher};
+use std::fmt;
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 struct Player {
     block_id: u8,
 }
+
+// impl fmt::Display for Player {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         write!(f, "({})", self.block_id)
+//     }
+// }
 
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, IntoEnumIterator, Debug)]
@@ -33,6 +42,21 @@ impl Orientation {
             Orientation::Right => return Orientation::Left,
         }
     }
+
+    // fn to_string(&self) -> String {
+    //     match self {
+    //         Orientation::Up => return "up".to_owned(),
+    //         Orientation::Down => return "down".to_owned(),
+    //         Orientation::Left => return "left".to_owned(),
+    //         Orientation::Right => return "right".to_owned(),
+    //     }
+    // }
+}
+
+impl fmt::Display for Orientation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({})", self)
+    }
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, IntoEnumIterator, Debug)]
@@ -47,10 +71,37 @@ enum Color {
     Red,
 }
 
+// impl Color {
+//     fn to_string(&self) -> String {
+//         match self {
+//             Color::Black => return "black".to_owned(),
+//             Color::Red => return "red".to_owned(),
+//         }
+//     }
+// }
+
+impl fmt::Display for Color {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({})", self)
+    }
+}
+
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 struct Unit {
     orientation: Orientation,
     color: Color,
+}
+
+// impl Unit {
+//     fn to_string(&self) -> String {
+//         return self.orientation.to_string() + self.color.to_string();
+//     }
+// }
+
+impl fmt::Display for Unit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {})", self.orientation, self.color)
+    }
 }
 
 //use builder pattern to init the values -- default trait
@@ -91,7 +142,7 @@ struct Block {
     neighbour_ids: NeighbourIds,
 }
 
-#[derive(Copy, Eq, PartialEq, Ord, PartialOrd, Clone, Hash)]
+#[derive(Copy, Eq, PartialEq, Ord, PartialOrd, Clone, Hash, Debug)]
 struct NetworkNode {
     hash_id: u64,
 }
@@ -112,6 +163,12 @@ impl Hash for Board {
         });
     }
 }
+
+// impl fmt::Display for Board {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         write!(f, "({}, {})", self.player, self.blocks)
+//     }
+// }
 
 fn calculate_hash<T: Hash>(t: &T) -> u64 {
     let mut s = std::collections::hash_map::DefaultHasher::new();
@@ -203,7 +260,7 @@ impl Board {
             player: Player{block_id: neighbour_id},
             blocks: blocks
         };
-        let hash = calculate_hash(&board);
+        // let hash = calculate_hash(&board);
         return board;
     }
 
@@ -229,41 +286,11 @@ fn main() {
     let rc = RefCell::new(graph); 
     let c = Rc::new(rc);
 
-    // let first_board = Board{
-    //     player: Player{block_id: 0},
-    //     blocks: hashmap!{
-    //         0 => Block{
-    //             small: Some(Unit{
-    //                 orientation: Orientation::Left,
-    //                 color: Color::Red,
-    //             }),
-    //             large: None,
-    //             id: 0,
-    //             neighbour_ids: NeighbourIds::new(None, Some(2), None, Some(1))
-    //         },
-    //         1 => Block{
-    //             small: None,
-    //             large: Some(Unit{
-    //                 orientation: Orientation::Left,
-    //                 color: Color::Red,
-    //             }),
-    //             id: 1,
-    //             neighbour_ids: NeighbourIds::new(None, Some(3), Some(0), None)
-    //         },
-    //         2 => Block{
-    //             small: None,
-    //             large: None,
-    //             id: 2,
-    //             neighbour_ids: NeighbourIds::new(Some(0), None, None, Some(3))
-    //         },
-    //         3 => Block{
-    //             small: None,
-    //             large: None,
-    //             id: 3,
-    //             neighbour_ids: NeighbourIds::new(Some(1), None, Some(2), None)
-    //         },
-    //     }
-    // };
+    // for num_columns in 0..3 {
+    //     for num_rows in 0..3 {
+        
+    //     }   
+    // }
 
     let first_board = Board{
         player: Player{block_id: 8},
@@ -342,14 +369,67 @@ fn main() {
             },
         }
     };
+    let first_board_hash = calculate_hash(&first_board);
 
     let mut boards: HashMap<u64, Board> = hashmap!{};
     
-    build(first_board, &mut boards, &mut c.borrow_mut());
+    build(&first_board, &mut boards, &mut c.borrow_mut());
 
-    // assert_eq!(c.borrow().node_count(), 14);
-    // assert_eq!(c.borrow().edge_count(), 13);
-    // assert_eq!(boards.len(), c.borrow().node_count());
+    let goals = goals(&boards, &c.borrow());
+
+    if goals.len() > 0 {
+        // println!("Solutions found for board: {:?}", first_board);
+        println!("Solutions found for board:");
+        print(&first_board);
+
+        println!("{}", goals.len());
+
+        for goal in goals {
+            let board = &boards[&goal.hash_id];
+            print(&board);
+        }
+        
+
+        // for goal in goals {
+            // let goal_node = NetworkNode{hash_id: calculate_hash(&goal)};
+            // 
+            // let foo = UnGraphMap::<NetworkNode, ()>::new();
+            // let res = dijkstra(
+            //     &c.borrow().into_graph(),
+            //     NetworkNode{hash_id: first_board_hash},
+            //     Some(goal),
+            //     |_| 1
+            // );
+            // let start_node = &c.borrow().nodes().iter().find(|node| => true);
+            // let path = astar(
+            //     UnGraphMap::<NetworkNode, ()>::new(),
+            //     // &c.borrow().into_graph(),
+            //     // petgraph::graph::NodeIndex(),
+            //     NetworkNode{hash_id: first_board_hash},               // start
+            //     |n| n == goal_node,      // is_goal
+            //     |_| 1, // edge_cost
+            //     |_| 0,           // estimate_cost
+            // );
+        
+            // match path {
+            //     Some((cost, path)) => {
+            //         println!("The total cost was {}: {:?}", cost, path);
+            //     }
+            //     None => println!("There was no path"),
+            // }
+        // };
+
+        // for goal in goals {
+        //     let res = dijkstra(
+        //         &c.borrow().into_graph(),
+        //         NetworkNode{hash_id: first_board_hash},
+        //         Some(goal),
+        //         |_| 1
+        //     );
+    } else {
+        println!("No solutions found");
+    }
+    
 
     // assert_eq!(can_win(&boards, & c.borrow()), true);
     
@@ -358,19 +438,57 @@ fn main() {
     // println!("{:?}", algo::dijkstra(c.borrow(), first_node, None, |_| 1));
 }
 
-// fn print(board: &Board) {
-//     let player_block_id = board.player.block_id;
-//     let mut keys: Vec<u8> = vec![];
+fn print(board: &Board) {
+    let player_block_id = board.player.block_id;
+    let mut keys = board.blocks.keys().cloned().collect::<Vec<u8>>();
+    keys.sort();
 
+    for key in keys {
+        // let mut string = format!("{}: ", key);
+        println!("{}", key);
+        let block = board.blocks[&key];
+        if key == player_block_id {
+            // string += "player, ";
+            println!("player ");
+        }
+        
+        if block.small != None {
+            match (block.small.unwrap().orientation, block.small.unwrap().color) {
+                (Orientation::Up, Color::Black) => println!("small up black"),
+                (Orientation::Down, Color::Black) => println!("small down black"),
+                (Orientation::Left, Color::Black) => println!("small left black"),
+                (Orientation::Right, Color::Black) => println!("small right black"),
+                (Orientation::Up, Color::Red) => println!("small up red"),
+                (Orientation::Down, Color::Red) => println!("small down red"),
+                (Orientation::Left, Color::Red) => println!("small left red"),
+                (Orientation::Right, Color::Red) => println!("small right red"),
+            };
+            // println!("{}", block.small.unwrap());
+            // string += format!("{}, ", &block.small.unwrap().to_string().to_owned()[..]);
+        }
 
-//     let keys = board.blocks.keys().collect().sort();
-// }
+        if block.large != None {
+            match (block.large.unwrap().orientation, block.large.unwrap().color) {
+                (Orientation::Up, Color::Black) => println!("large up black"),
+                (Orientation::Down, Color::Black) => println!("large down black"),
+                (Orientation::Left, Color::Black) => println!("large left black"),
+                (Orientation::Right, Color::Black) => println!("large right black"),
+                (Orientation::Up, Color::Red) => println!("large up red"),
+                (Orientation::Down, Color::Red) => println!("large down red"),
+                (Orientation::Left, Color::Red) => println!("large left red"),
+                (Orientation::Right, Color::Red) => println!("large right red"),
+            };
+            // println!("{}", block.large.unwrap());
+            // string += format!("large {}, ", block.large.unwrap());
+        }
 
-fn build(board: Board, boards: &mut HashMap<u64, Board>, network: &mut UnGraphMap::<NetworkNode, ()>) {
+        // println!("{}", string);
+    }
+}
+
+fn build(board: &Board, boards: &mut HashMap<u64, Board>, network: &mut UnGraphMap::<NetworkNode, ()>) {
     let board_hash = calculate_hash(&board);
     let board_node = NetworkNode{hash_id: board_hash};
-
-    // println!("{:?}", board);
 
     network.add_node(board_node);
     let board_clone = board.clone();
@@ -383,7 +501,7 @@ fn build(board: Board, boards: &mut HashMap<u64, Board>, network: &mut UnGraphMa
         let next_node = NetworkNode{hash_id: calculate_hash(&next)};
 
         if !network.contains_node(next_node) {
-            build(next.clone(), boards, network);
+            build(&next.clone(), boards, network);
         }
 
         if !network.contains_edge(board_node, next_node) {
@@ -393,14 +511,20 @@ fn build(board: Board, boards: &mut HashMap<u64, Board>, network: &mut UnGraphMa
 }
 
 fn can_win(boards: &HashMap<u64, Board>, network: & UnGraphMap::<NetworkNode, ()>) -> bool {
-    match network.nodes().find(|node| { 
-        let hash_id = node.hash_id;
-        let board = &boards[&hash_id];
-        return board.is_win();
-    }) {
-        Some(_) => return true,
-        None => return false,
-    }
+    return goals(boards, network).len() > 0;
+}
+
+fn goals(boards: &HashMap<u64, Board>, network: & UnGraphMap::<NetworkNode, ()>) -> Vec<NetworkNode> {
+    return 
+        network.nodes()
+        .filter(|node| { 
+            let hash_id = node.hash_id;
+            let board = &boards[&hash_id];
+            return board.is_win();
+        })
+        .into_iter()
+        // .map(|network_node| { return network_node.hash_id; })
+        .collect();
 }
 
 #[cfg(test)]
