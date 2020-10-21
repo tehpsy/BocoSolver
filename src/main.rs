@@ -497,6 +497,8 @@ fn build(board: &Board, boards: &mut HashMap<u64, Board>, network: &mut UnGraphM
     boards.insert(board_hash, board.clone());
     // println!("{:?}", algo::dijkstra(c.borrow(), first_node, None, |_| 1));
 
+    if board.is_win() { return; }
+    
     board.next_boards().iter().for_each(|next| {
         let next_node = NetworkNode{hash_id: calculate_hash(&next)};
 
