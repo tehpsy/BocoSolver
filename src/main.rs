@@ -280,6 +280,25 @@ impl Board {
     }
 }
 
+fn block_id(curr_block_id: u8, num_columns: u8, num_rows: u8, orientation: Orientation) -> Option<u8> {
+    let max = num_columns * num_rows;
+
+    let mut val: Option<u8> = None;
+
+    match orientation {
+        Orientation::Up => 
+            if curr_block_id < num_columns { val = None; } else { val = Some(curr_block_id - num_columns); },
+        Orientation::Down =>
+            if curr_block_id >= max - num_columns { val = None; } else { val = Some(curr_block_id + num_columns); },
+        Orientation::Left =>
+            if curr_block_id % num_columns == 0 { val = None; } else { val = Some(curr_block_id - 1); },
+        Orientation::Right =>
+            if curr_block_id % num_columns == num_columns - 1 { val = None; } else { val = Some(curr_block_id + 1); },
+    };
+
+    return val;
+}
+
 fn main() {
     let graph = UnGraphMap::<NetworkNode, ()>::new();
     let rc = RefCell::new(graph); 

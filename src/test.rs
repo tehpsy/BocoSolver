@@ -1001,5 +1001,60 @@ mod tests {
         //     }
         // );
     }
+
+    #[test]
+    fn test_block_id() {
+        assert_eq!(block_id( 0, 4, 3, Orientation::Up), None);
+        assert_eq!(block_id( 1, 4, 3, Orientation::Up), None);
+        assert_eq!(block_id( 2, 4, 3, Orientation::Up), None);
+        assert_eq!(block_id( 3, 4, 3, Orientation::Up), None);
+        assert_eq!(block_id( 4, 4, 3, Orientation::Up), Some(0));
+        assert_eq!(block_id( 5, 4, 3, Orientation::Up), Some(1));
+        assert_eq!(block_id( 6, 4, 3, Orientation::Up), Some(2));
+        assert_eq!(block_id( 7, 4, 3, Orientation::Up), Some(3));
+        assert_eq!(block_id( 8, 4, 3, Orientation::Up), Some(4));
+        assert_eq!(block_id( 9, 4, 3, Orientation::Up), Some(5));
+        assert_eq!(block_id(10, 4, 3, Orientation::Up), Some(6));
+        assert_eq!(block_id(11, 4, 3, Orientation::Up), Some(7));
+
+        assert_eq!(block_id( 0, 4, 3, Orientation::Down), Some( 4));
+        assert_eq!(block_id( 1, 4, 3, Orientation::Down), Some( 5));
+        assert_eq!(block_id( 2, 4, 3, Orientation::Down), Some( 6));
+        assert_eq!(block_id( 3, 4, 3, Orientation::Down), Some( 7));
+        assert_eq!(block_id( 4, 4, 3, Orientation::Down), Some( 8));
+        assert_eq!(block_id( 5, 4, 3, Orientation::Down), Some( 9));
+        assert_eq!(block_id( 6, 4, 3, Orientation::Down), Some(10));
+        assert_eq!(block_id( 7, 4, 3, Orientation::Down), Some(11));
+        assert_eq!(block_id( 8, 4, 3, Orientation::Down), None);
+        assert_eq!(block_id( 9, 4, 3, Orientation::Down), None);
+        assert_eq!(block_id(10, 4, 3, Orientation::Down), None);
+        assert_eq!(block_id(11, 4, 3, Orientation::Down), None);
+
+        assert_eq!(block_id( 0, 4, 3, Orientation::Left), None);
+        assert_eq!(block_id( 1, 4, 3, Orientation::Left), Some( 0));
+        assert_eq!(block_id( 2, 4, 3, Orientation::Left), Some( 1));
+        assert_eq!(block_id( 3, 4, 3, Orientation::Left), Some( 2));
+        assert_eq!(block_id( 4, 4, 3, Orientation::Left), None);
+        assert_eq!(block_id( 5, 4, 3, Orientation::Left), Some( 4));
+        assert_eq!(block_id( 6, 4, 3, Orientation::Left), Some( 5));
+        assert_eq!(block_id( 7, 4, 3, Orientation::Left), Some( 6));
+        assert_eq!(block_id( 8, 4, 3, Orientation::Left), None);
+        assert_eq!(block_id( 9, 4, 3, Orientation::Left), Some( 8));
+        assert_eq!(block_id(10, 4, 3, Orientation::Left), Some( 9));
+        assert_eq!(block_id(11, 4, 3, Orientation::Left), Some(10));
+
+        assert_eq!(block_id( 0, 4, 3, Orientation::Right), Some( 1));
+        assert_eq!(block_id( 1, 4, 3, Orientation::Right), Some( 2));
+        assert_eq!(block_id( 2, 4, 3, Orientation::Right), Some( 3));
+        assert_eq!(block_id( 3, 4, 3, Orientation::Right), None);
+        assert_eq!(block_id( 4, 4, 3, Orientation::Right), Some( 5));
+        assert_eq!(block_id( 5, 4, 3, Orientation::Right), Some( 6));
+        assert_eq!(block_id( 6, 4, 3, Orientation::Right), Some( 7));
+        assert_eq!(block_id( 7, 4, 3, Orientation::Right), None);
+        assert_eq!(block_id( 8, 4, 3, Orientation::Right), Some( 9));
+        assert_eq!(block_id( 9, 4, 3, Orientation::Right), Some(10));
+        assert_eq!(block_id(10, 4, 3, Orientation::Right), Some(11));
+        assert_eq!(block_id(11, 4, 3, Orientation::Right), None);
+    }
 }
 
