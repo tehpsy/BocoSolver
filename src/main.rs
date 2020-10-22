@@ -8,7 +8,6 @@ use std::cell::RefCell;
 use petgraph::algo::astar;
 use enum_iterator::IntoEnumIterator;
 use maplit::hashmap;
-// use maplit::hashset;
 use std::iter::FromIterator;
 use std::hash::{Hash, Hasher};
 use std::fmt;

@@ -1,4 +1,5 @@
 use super::*;
+use maplit::hashset;
 
 #[cfg(test)]
 mod tests {
@@ -492,7 +493,7 @@ mod tests {
         };
         let mut boards: HashMap<u64, Board> = hashmap!{};
         
-        build(first_board, &mut boards, &mut c.borrow_mut());
+        build(&first_board, &mut boards, &mut c.borrow_mut());
 
         assert_eq!(c.borrow().node_count(), 2);
         assert_eq!(c.borrow().edge_count(), 1);
@@ -541,19 +542,13 @@ mod tests {
                 },
             }
         };
-        let first_hash_1 = calculate_hash(&first_board);
-        let first_hash_2 = calculate_hash(&first_board);
-        assert_eq!(first_hash_1, first_hash_2);
-        
+
         let mut boards: HashMap<u64, Board> = hashmap!{};
         
-        build(first_board, &mut boards, &mut c.borrow_mut());
+        build(&first_board, &mut boards, &mut c.borrow_mut());
 
-        println!("{}", first_hash_1);
-        println!("{}", first_hash_2);
-
-        assert_eq!(c.borrow().node_count(), 11);
-        assert_eq!(c.borrow().edge_count(), 10);
+        assert_eq!(c.borrow().node_count(), 7);
+        assert_eq!(c.borrow().edge_count(), 6);
         assert_eq!(boards.len(), c.borrow().node_count());
         assert_eq!(can_win(&boards, & c.borrow()), true);
     }
@@ -806,7 +801,7 @@ mod tests {
         let last_hash_1 = calculate_hash(&last_board);
         let last_hash_2 = calculate_hash(&last_board);
 
-        build(first_board, &mut boards, &mut c.borrow_mut());
+        build(&first_board, &mut boards, &mut c.borrow_mut());
 
         // assert_eq!(first_hash_1, first_hash_2);
         // assert_eq!(last_hash_1, last_hash_2);
