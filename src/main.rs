@@ -13,15 +13,15 @@ use std::hash::{Hash, Hasher};
 use std::fmt;
 
 mod model;
-use model::orientation::Orientation;
-use model::player::Player;
-use model::color::Color;
-use model::size::Size;
-use model::unit::Unit;
-use model::neighbour_ids::NeighbourIds;
-use model::board::Board;
-use model::network_node::NetworkNode;
-use model::block::Block;
+use model::Orientation;
+use model::Player;
+use model::Color;
+use model::Size;
+use model::Unit;
+use model::NeighbourIds;
+use model::Board;
+use model::NetworkNode;
+use model::Block;
 
 //look for hashing a hashmap in rust
 
