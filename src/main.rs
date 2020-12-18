@@ -283,7 +283,7 @@ impl Board {
 fn block_id(curr_block_id: u8, num_columns: u8, num_rows: u8, orientation: Orientation) -> Option<u8> {
     let max = num_columns * num_rows;
 
-    let mut val: Option<u8> = None;
+    let val: Option<u8>;
 
     match orientation {
         Orientation::Up => 
