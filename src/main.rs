@@ -4,8 +4,6 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use maplit::hashmap;
 use std::hash::{Hash, Hasher};
-// use petgraph::algo;
-// use petgraph::algo::dijkstra;
 // use petgraph::algo::astar;
 
 mod model;
@@ -25,12 +23,6 @@ fn main() {
     let graph = UnGraphMap::<NetworkNode, ()>::new();
     let rc = RefCell::new(graph); 
     let c = Rc::new(rc);
-
-    // for num_columns in 0..3 {
-    //     for num_rows in 0..3 {
-        
-    //     }   
-    // }
 
     let first_board = Board{
         player: Player{block_id: 8},
@@ -109,7 +101,7 @@ fn main() {
             },
         }
     };
-    // let first_board_hash = calculate_hash(&first_board);
+    let first_board_hash = calculate_hash(&first_board);
 
     let mut boards: HashMap<u64, Board> = hashmap!{};
     
@@ -118,7 +110,6 @@ fn main() {
     let goals = utils::goals(&boards, &c.borrow());
 
     if goals.len() > 0 {
-        // println!("Solutions found for board: {:?}", first_board);
         println!("{} solutions found for board:", goals.len());
         utils::print(&first_board);
         println!("---");
@@ -129,53 +120,31 @@ fn main() {
             println!("---");
         }
         
-
         // for goal in goals {
-            // let goal_node = NetworkNode{hash_id: calculate_hash(&goal)};
-            // 
-            // let foo = UnGraphMap::<NetworkNode, ()>::new();
-            // let res = dijkstra(
-            //     &c.borrow().into_graph(),
-            //     NetworkNode{hash_id: first_board_hash},
-            //     Some(goal),
-            //     |_| 1
-            // );
-            // let start_node = &c.borrow().nodes().iter().find(|node| => true);
-            // let path = astar(
-            //     UnGraphMap::<NetworkNode, ()>::new(),
-            //     // &c.borrow().into_graph(),
-            //     // petgraph::graph::NodeIndex(),
-            //     NetworkNode{hash_id: first_board_hash},               // start
-            //     |n| n == goal_node,      // is_goal
-            //     |_| 1, // edge_cost
-            //     |_| 0,           // estimate_cost
-            // );
-        
-            // match path {
-            //     Some((cost, path)) => {
-            //         println!("The total cost was {}: {:?}", cost, path);
-            //     }
-            //     None => println!("There was no path"),
-            // }
-        // };
-
-        // for goal in goals {
-        //     let res = dijkstra(
-        //         &c.borrow().into_graph(),
+        //     let goal_node = NetworkNode{hash_id: calculate_hash(&goal)};
+            
+        //     let foo = UnGraphMap::<NetworkNode, ()>::new();
+        //     // let start_node = &c.borrow().nodes().iter().find(|node| => true);
+        //     let path = astar(
+        //         UnGraphMap::<NetworkNode, ()>::new(),
+        //         // &c.borrow().into_graph(),
+        //         // petgraph::graph::NodeIndex(),
         //         NetworkNode{hash_id: first_board_hash},
-        //         Some(goal),
-        //         |_| 1
+        //         |n| n == goal_node,
+        //         |_| 1,
+        //         |_| 0,
         //     );
+        
+        //     match path {
+        //         Some((cost, path)) => {
+        //             println!("The total cost was {}: {:?}", cost, path);
+        //         }
+        //         None => println!("There was no path"),
+        //     }
+        // };
     } else {
         println!("No solutions found");
     }
-    
-
-    // assert_eq!(can_win(&boards, & c.borrow()), true);
-    
-    // assert_eq!(algo::has_path_connecting(c.borrow(), first_node, first_node, None), true);
-    // println!(algo::dijkstra(c.borrow(), first_node, goal: Option<G::NodeId>, 1))
-    // println!("{:?}", algo::dijkstra(c.borrow(), first_node, None, |_| 1));
 }
 
 #[cfg(test)]
