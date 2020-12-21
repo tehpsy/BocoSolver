@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::{collections::HashMap};
 use petgraph::graphmap::UnGraphMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 use maplit::hashmap;
 use std::hash::{Hash, Hasher};
-// use petgraph::algo::astar;
+use petgraph::algo::astar;
 
 mod model;
 use model::*;
@@ -40,34 +40,36 @@ fn main() {
         utils::print(&first_board);
         println!("---");
 
-        for goal in goals {
-            let board = &boards[&goal.hash_id];
-            utils::print(&board);
-            println!("---");
-        }
-        
         // for goal in goals {
-        //     let goal_node = NetworkNode{hash_id: calculate_hash(&goal)};
-            
-        //     let foo = UnGraphMap::<NetworkNode, ()>::new();
-        //     // let start_node = &c.borrow().nodes().iter().find(|node| => true);
-        //     let path = astar(
-        //         UnGraphMap::<NetworkNode, ()>::new(),
-        //         // &c.borrow().into_graph(),
-        //         // petgraph::graph::NodeIndex(),
-        //         NetworkNode{hash_id: first_board_hash},
-        //         |n| n == goal_node,
-        //         |_| 1,
-        //         |_| 0,
-        //     );
+        //     let board = &boards[&goal.hash_id];
+        //     utils::print(&board);
+        //     println!("---");
+        // }
         
-        //     match path {
-        //         Some((cost, path)) => {
-        //             println!("The total cost was {}: {:?}", cost, path);
-        //         }
-        //         None => println!("There was no path"),
-        //     }
-        // };
+        for goal in goals {
+            let goal_hash = calculate_hash(&goal);
+            let goal_node = NetworkNode{hash_id: goal_hash};
+            // let goal_node_index = petgraph::graph::NodeIndex::new(goal_hash.try_into().unwrap());
+            let foo = UnGraphMap::<NetworkNode, ()>::new();
+            // let start_node = &c.borrow().nodes().iter().find(|node| => true);
+            // let graph2 = Graph::<NetworkNode, ()>::new();
+            let path = astar(
+                &graph,
+                // &c.borrow(),
+                // &rc.borrow().into_graph(),
+                NetworkNode{hash_id: first_board_hash},//petgraph::graph::NodeIndex::new(first_board_hash.try_into().unwrap()),
+                |n| n == goal_node,
+                |_| 1,
+                |_| 0,
+            );
+        
+            match path {
+                Some((cost, path)) => {
+                    println!("The total cost was {}: {:?}", cost, path);
+                }
+                None => println!("There was no path"),
+            }
+        };
     } else {
         println!("No solutions found");
     }
