@@ -1,5 +1,7 @@
 use super::*;
 use maplit::hashset;
+use utils;
+use enum_iterator::IntoEnumIterator;
 
 #[cfg(test)]
 mod tests {
@@ -493,12 +495,12 @@ mod tests {
         };
         let mut boards: HashMap<u64, Board> = hashmap!{};
         
-        build(&first_board, &mut boards, &mut c.borrow_mut());
+        utils::build(&first_board, &mut boards, &mut c.borrow_mut());
 
         assert_eq!(c.borrow().node_count(), 2);
         assert_eq!(c.borrow().edge_count(), 1);
         assert_eq!(boards.len(), c.borrow().node_count());
-        assert_eq!(can_win(&boards, & c.borrow()), true);
+        assert_eq!(utils::can_win(&boards, & c.borrow()), true);
     }
 
     #[test]
@@ -545,12 +547,12 @@ mod tests {
 
         let mut boards: HashMap<u64, Board> = hashmap!{};
         
-        build(&first_board, &mut boards, &mut c.borrow_mut());
+        utils::build(&first_board, &mut boards, &mut c.borrow_mut());
 
         assert_eq!(c.borrow().node_count(), 7);
         assert_eq!(c.borrow().edge_count(), 6);
         assert_eq!(boards.len(), c.borrow().node_count());
-        assert_eq!(can_win(&boards, & c.borrow()), true);
+        assert_eq!(utils::can_win(&boards, & c.borrow()), true);
     }
 
     #[test]
@@ -801,7 +803,7 @@ mod tests {
         let last_hash_1 = calculate_hash(&last_board);
         let last_hash_2 = calculate_hash(&last_board);
 
-        build(&first_board, &mut boards, &mut c.borrow_mut());
+        utils::build(&first_board, &mut boards, &mut c.borrow_mut());
 
         // assert_eq!(first_hash_1, first_hash_2);
         // assert_eq!(last_hash_1, last_hash_2);
@@ -825,7 +827,7 @@ mod tests {
         // assert_eq!(boards.contains_key(&intermediate_board_hash), true);
         // assert_eq!(c.borrow().node_count(), 14);
         // assert_eq!(c.borrow().edge_count(), 13);
-        assert_eq!(can_win(&boards, & c.borrow()), true);
+        assert_eq!(utils::can_win(&boards, & c.borrow()), true);
     }
 
     #[test]
@@ -1055,6 +1057,25 @@ mod tests {
         assert_eq!(block_id( 9, 4, 3, Orientation::Right), Some(10));
         assert_eq!(block_id(10, 4, 3, Orientation::Right), Some(11));
         assert_eq!(block_id(11, 4, 3, Orientation::Right), None);
+    }
+
+    fn block_id(curr_block_id: u8, num_columns: u8, num_rows: u8, orientation: Orientation) -> Option<u8> {
+        let max = num_columns * num_rows;
+    
+        let val: Option<u8>;
+    
+        match orientation {
+            Orientation::Up => 
+                if curr_block_id < num_columns { val = None; } else { val = Some(curr_block_id - num_columns); },
+            Orientation::Down =>
+                if curr_block_id >= max - num_columns { val = None; } else { val = Some(curr_block_id + num_columns); },
+            Orientation::Left =>
+                if curr_block_id % num_columns == 0 { val = None; } else { val = Some(curr_block_id - 1); },
+            Orientation::Right =>
+                if curr_block_id % num_columns == num_columns - 1 { val = None; } else { val = Some(curr_block_id + 1); },
+        };
+    
+        return val;
     }
 }
 
