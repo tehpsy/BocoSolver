@@ -113,7 +113,6 @@ impl Board {
             player: Player{block_id: neighbour_id},
             blocks: blocks
         };
-        // let hash = calculate_hash(&board);
         return board;
     }
 

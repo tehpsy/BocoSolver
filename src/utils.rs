@@ -54,11 +54,7 @@ pub fn build(board: &Board, boards: &mut HashMap<u64, Board>, network: &mut UnGr
   let board_node = NetworkNode{hash_id: board_hash};
 
   network.add_node(board_node);
-  let board_clone = board.clone();
-  let board_clone_hash = calculate_hash(&board_clone);
-  assert_eq!(board_clone_hash, board_hash);
   boards.insert(board_hash, board.clone());
-  // println!("{:?}", algo::dijkstra(c.borrow(), first_node, None, |_| 1));
 
   if board.is_win() { return; }
 

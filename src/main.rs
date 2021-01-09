@@ -35,42 +35,38 @@ fn main() {
     utils::build(&first_board, &mut boards, &mut c.borrow_mut());
 
     let goals = utils::goals(&boards, &c.borrow());
+    
     println!("{} solutions found for board:", goals.len());
+    utils::print(&first_board);
+    println!("---");
 
-    if goals.len() > 0 {
-        utils::print(&first_board);
+    for goal in &goals {
+        let board = &boards[&goal.hash_id];
+        utils::print(&board);
         println!("---");
 
-        for goal in &goals {
-            let board = &boards[&goal.hash_id];
-            utils::print(&board);
-            println!("---");
-        }
-        
-        for goal in &goals {
-            let goal_hash = calculate_hash(&goal);
-            let graph: petgraph::Graph<model::NetworkNode, (), petgraph::Undirected, usize> =
-                c.borrow().clone().into_graph();
+        let goal_hash = goal.hash_id;
+        let graph: petgraph::Graph<model::NetworkNode, (), petgraph::Undirected, usize> =
+            c.borrow().clone().into_graph();
 
-            let goal_node_index: petgraph::graph::NodeIndex<usize> = petgraph::graph::NodeIndex::new(goal_hash.try_into().unwrap());
-            let path = astar(
-                &graph,
-                petgraph::graph::NodeIndex::new(first_board_hash.try_into().unwrap()),
-                |n: petgraph::graph::NodeIndex<usize>| n == goal_node_index,
-                |_| 1,
-                |_| 1,
-            );
-        
-            match path {
-                Some((cost, path)) => {
-                    println!("The total cost was {}: {:?}", cost, path);
-                }
-                None => println!("There was no path"),
+        let start_node_index: petgraph::graph::NodeIndex<usize> = petgraph::graph::NodeIndex::new(first_board_hash.try_into().unwrap());
+        let goal_node_index: petgraph::graph::NodeIndex<usize> = petgraph::graph::NodeIndex::new(goal_hash.try_into().unwrap());
+
+        let path = astar(
+            &graph,
+            start_node_index,
+            |n: petgraph::graph::NodeIndex<usize>| n == goal_node_index,
+            |_| 1,
+            |_| 1,
+        );
+    
+        match path {
+            Some((cost, path)) => {
+                println!("The total cost was {}: {:?}", cost, path);
             }
-        };
-    } else {
-        println!("No solutions found");
-    }
+            None => println!("There was no path"),
+        }
+    };
 }
 
 #[cfg(test)]
