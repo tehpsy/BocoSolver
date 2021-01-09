@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::{collections::HashMap, convert::TryInto};
 use petgraph::graphmap::UnGraphMap;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -26,7 +26,8 @@ fn main() {
     let rc = RefCell::new(graph); 
     let c = Rc::new(rc);
 
-    let first_board = builder::build_hardest_boco_level();
+    // let first_board = builder::build_hardest_boco_level();
+    let first_board = builder::build_easiest_boco_level();
     let first_board_hash = calculate_hash(&first_board);
 
     let mut boards: HashMap<u64, Board> = hashmap!{};
@@ -34,33 +35,30 @@ fn main() {
     utils::build(&first_board, &mut boards, &mut c.borrow_mut());
 
     let goals = utils::goals(&boards, &c.borrow());
+    println!("{} solutions found for board:", goals.len());
 
     if goals.len() > 0 {
-        println!("{} solutions found for board:", goals.len());
         utils::print(&first_board);
         println!("---");
 
-        // for goal in goals {
-        //     let board = &boards[&goal.hash_id];
-        //     utils::print(&board);
-        //     println!("---");
-        // }
+        for goal in &goals {
+            let board = &boards[&goal.hash_id];
+            utils::print(&board);
+            println!("---");
+        }
         
-        for goal in goals {
+        for goal in &goals {
             let goal_hash = calculate_hash(&goal);
-            let goal_node = NetworkNode{hash_id: goal_hash};
-            // let goal_node_index = petgraph::graph::NodeIndex::new(goal_hash.try_into().unwrap());
-            let foo = UnGraphMap::<NetworkNode, ()>::new();
-            // let start_node = &c.borrow().nodes().iter().find(|node| => true);
-            // let graph2 = Graph::<NetworkNode, ()>::new();
+            let graph: petgraph::Graph<model::NetworkNode, (), petgraph::Undirected, usize> =
+                c.borrow().clone().into_graph();
+
+            let goal_node_index: petgraph::graph::NodeIndex<usize> = petgraph::graph::NodeIndex::new(goal_hash.try_into().unwrap());
             let path = astar(
                 &graph,
-                // &c.borrow(),
-                // &rc.borrow().into_graph(),
-                NetworkNode{hash_id: first_board_hash},//petgraph::graph::NodeIndex::new(first_board_hash.try_into().unwrap()),
-                |n| n == goal_node,
+                petgraph::graph::NodeIndex::new(first_board_hash.try_into().unwrap()),
+                |n: petgraph::graph::NodeIndex<usize>| n == goal_node_index,
                 |_| 1,
-                |_| 0,
+                |_| 1,
             );
         
             match path {

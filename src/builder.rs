@@ -79,3 +79,29 @@ pub fn build_hardest_boco_level() -> Board {
     }
   };
 }
+
+pub fn build_easiest_boco_level() -> Board {
+    return Board{
+      player: Player{block_id: 0},
+      blocks: hashmap!{
+          0 => Block{
+              small: Some(Unit{
+                orientation: Orientation::Left,
+                color: Color::Red,
+              }),
+              large: None,
+              id: 0,
+              neighbour_ids: NeighbourIds::new(None, None, None, Some(1))
+          },
+          1 => Block{
+              small: None,
+              large: Some(Unit{
+                orientation: Orientation::Left,
+                color: Color::Red,
+              }),
+              id: 1,
+              neighbour_ids: NeighbourIds::new(None, None, Some(0), None)
+          },
+      }
+    };
+  }
