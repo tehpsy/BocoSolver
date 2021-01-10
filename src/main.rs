@@ -26,9 +26,9 @@ fn main() {
     let rc = RefCell::new(graph); 
     let c = Rc::new(rc);
 
-    // let first_board = builder::build_hardest_boco_level();
-    let first_board = builder::build_easiest_boco_level();
+    let first_board = builder::build_hardest_boco_level();
     let first_board_hash = calculate_hash(&first_board);
+    let start = NetworkNode{hash_id: first_board_hash.try_into().unwrap()};
 
     let mut boards: HashMap<u64, Board> = hashmap!{};
     
@@ -45,17 +45,10 @@ fn main() {
         utils::print(&board);
         println!("---");
 
-        let goal_hash = goal.hash_id;
-        let graph: petgraph::Graph<model::NetworkNode, (), petgraph::Undirected, usize> =
-            c.borrow().clone().into_graph();
-
-        let start_node_index: petgraph::graph::NodeIndex<usize> = petgraph::graph::NodeIndex::new(first_board_hash.try_into().unwrap());
-        let goal_node_index: petgraph::graph::NodeIndex<usize> = petgraph::graph::NodeIndex::new(goal_hash.try_into().unwrap());
-
         let path = astar(
-            &graph,
-            start_node_index,
-            |n: petgraph::graph::NodeIndex<usize>| n == goal_node_index,
+            &*c.borrow(),
+            start,
+            |n| n == *goal,
             |_| 1,
             |_| 1,
         );
