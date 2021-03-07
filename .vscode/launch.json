@@ -7,10 +7,11 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug executable 'boco_solver'",
+      "name": "Debug unit tests in executable 'boco_solver'",
       "cargo": {
         "args": [
-          "build",
+          "test",
+          "--no-run",
           "--bin=boco_solver",
           "--package=boco_solver"
         ],
@@ -25,11 +26,10 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug unit tests in executable 'boco_solver'",
+      "name": "Debug executable 'boco_solver'",
       "cargo": {
         "args": [
-          "test",
-          "--no-run",
+          "build",
           "--bin=boco_solver",
           "--package=boco_solver"
         ],
