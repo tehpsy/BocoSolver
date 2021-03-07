@@ -1,5 +1,7 @@
-use crate::*;
-// use std::collections::HashSet;
+use crate::model::*;
+use crate::hasher::*;
+use petgraph::graphmap::UnGraphMap;
+use std::{collections::HashMap};
 
 pub fn print(board: &Board) {
   let player_block_id = board.player.block_id;

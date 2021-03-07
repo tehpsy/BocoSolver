@@ -2,6 +2,14 @@ use super::*;
 use maplit::hashset;
 use utils;
 use enum_iterator::IntoEnumIterator;
+use model::*;
+use maplit::hashmap;
+use super::*;
+use hasher::*;
+use std::collections::HashMap;
+use petgraph::graphmap::UnGraphMap;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 #[cfg(test)]
 mod tests {
