@@ -1,7 +1,7 @@
 use maplit::hashmap;
 use crate::model::*;
 
-pub fn build_hardest_boco_level() -> Board {
+pub fn hardest_boco_level() -> Board {
     return Board{
         player: Player{block_id: 8},
         blocks: hashmap!{
@@ -81,7 +81,7 @@ pub fn build_hardest_boco_level() -> Board {
     };
 }
 
-pub fn build_easiest_boco_level() -> Board {
+pub fn easiest_boco_level() -> Board {
     return Board{
         player: Player{block_id: 0},
         blocks: hashmap!{
