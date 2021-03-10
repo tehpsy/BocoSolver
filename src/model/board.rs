@@ -2,6 +2,7 @@ use enum_iterator::IntoEnumIterator;
 use super::player::Player;
 use super::block::Block;
 use super::color::Color;
+use super::unit::Unit;
 use super::orientation::Orientation;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -130,5 +131,293 @@ impl Board {
             (Some(small), Some(large)) => small.color == Color::Red && large.color == Color::Red,
             _ => false,
         };
+    }
+
+    pub fn flip_horizontal(&self) -> Board {
+        let mut new_board = self.clone();
+        for (id, block) in new_board.blocks.iter_mut() {
+            let left_neighbour = block.neighbour_ids.left;
+            let right_neighbour = block.neighbour_ids.right;
+            block.neighbour_ids.left = right_neighbour;
+            block.neighbour_ids.right = left_neighbour;
+
+            match block.small {
+                Some(unit) => {
+                    if unit.orientation.is_horizontal() {
+                        let new_orientation = unit.orientation.opposite();
+                        block.small = Some(Unit{orientation: new_orientation, color: block.small.unwrap().color});
+                    }
+                },
+                _ => {},
+            }
+
+            match block.large {
+                Some(unit) => {
+                    if unit.orientation.is_horizontal() {
+                        let new_orientation = unit.orientation.opposite();
+                        block.large = Some(Unit{orientation: new_orientation, color: block.large.unwrap().color});
+                    }
+                },
+                _ => {},
+            }
+        }
+
+        new_board
+    }
+
+    pub fn rotate_cw_90_deg(&self) -> Board {
+        let mut new_board = self.clone();
+        for (id, block) in new_board.blocks.iter_mut() {
+            let up_neighbour = block.neighbour_ids.up;
+            let down_neighbour = block.neighbour_ids.down;
+            let left_neighbour = block.neighbour_ids.left;
+            let right_neighbour = block.neighbour_ids.right;
+            block.neighbour_ids.up = left_neighbour;
+            block.neighbour_ids.down = right_neighbour;
+            block.neighbour_ids.left = down_neighbour;
+            block.neighbour_ids.right = up_neighbour;
+
+            match block.small {
+                Some(unit) => {
+                    let new_orientation = unit.orientation.rotate_cw_90_deg();
+                    block.small = Some(Unit{orientation: new_orientation, color: block.small.unwrap().color});
+                },
+                _ => {},
+            }
+
+            match block.large {
+                Some(unit) => {
+                    let new_orientation = unit.orientation.rotate_cw_90_deg();
+                    block.large = Some(Unit{orientation: new_orientation, color: block.large.unwrap().color});
+                },
+                _ => {},
+            }
+        }
+
+        new_board
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::model::*;
+    use crate::hasher::calculate_hash;
+    use maplit::hashmap;
+
+    #[test]
+    fn flips_board_horizontally() {
+        let original_board = Board{
+            player: Player{block_id: 0},
+            blocks: hashmap!{
+              0 => Block{
+                small: None,
+                large: Some(Unit{orientation: Orientation::Right, color: Color::Red}),
+                id: 0,
+                neighbour_ids: NeighbourIds::new(None, Some(2), None, Some(1))
+              },
+              1 => Block{
+                small: Some(Unit{orientation: Orientation::Left, color: Color::Black}),
+                large: None,
+                id: 1,
+                neighbour_ids: NeighbourIds::new(None, Some(3), Some(0), None)
+              },
+              2 => Block{
+                small: None,
+                large: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
+                id: 2,
+                neighbour_ids: NeighbourIds::new(Some(0), None, None, Some(3))
+              },
+              3 => Block{
+                small: Some(Unit{orientation: Orientation::Down, color: Color::Red}),
+                large: None,
+                id: 3,
+                neighbour_ids: NeighbourIds::new(Some(1), None, Some(2), None)
+              },
+            }
+        };
+        let flipped_board = original_board.flip_horizontal();
+        let expected_flipped_board = Board{
+            player: Player{block_id: 0},
+            blocks: hashmap!{
+              0 => Block{
+                small: None,
+                large: Some(Unit{orientation: Orientation::Left, color: Color::Red}),
+                id: 0,
+                neighbour_ids: NeighbourIds::new(None, Some(2), Some(1), None)
+              },
+              1 => Block{
+                small: Some(Unit{orientation: Orientation::Right, color: Color::Black}),
+                large: None,
+                id: 1,
+                neighbour_ids: NeighbourIds::new(None, Some(3), None, Some(0))
+              },
+              2 => Block{
+                small: None,
+                large: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
+                id: 2,
+                neighbour_ids: NeighbourIds::new(Some(0), None, Some(3), None)
+              },
+              3 => Block{
+                small: Some(Unit{orientation: Orientation::Down, color: Color::Red}),
+                large: None,
+                id: 3,
+                neighbour_ids: NeighbourIds::new(Some(1), None, None, Some(2))
+              },
+            }
+        };
+
+        assert_eq!(flipped_board, expected_flipped_board);
+    }
+
+    #[test]
+    fn rotates_board_cw_90_deg() {
+        let original_board = Board{
+            player: Player{block_id: 0},
+            blocks: hashmap!{
+              0 => Block{
+                small: None,
+                large: Some(Unit{orientation: Orientation::Right, color: Color::Red}),
+                id: 0,
+                neighbour_ids: NeighbourIds::new(None, Some(2), None, Some(1))
+              },
+              1 => Block{
+                small: Some(Unit{orientation: Orientation::Left, color: Color::Black}),
+                large: None,
+                id: 1,
+                neighbour_ids: NeighbourIds::new(None, Some(3), Some(0), None)
+              },
+              2 => Block{
+                small: None,
+                large: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
+                id: 2,
+                neighbour_ids: NeighbourIds::new(Some(0), None, None, Some(3))
+              },
+              3 => Block{
+                small: Some(Unit{orientation: Orientation::Down, color: Color::Red}),
+                large: None,
+                id: 3,
+                neighbour_ids: NeighbourIds::new(Some(1), None, Some(2), None)
+              },
+            }
+        };
+        let rotated_board = original_board.rotate_cw_90_deg();
+        let expected_rotated_board = Board{
+            player: Player{block_id: 0},
+            blocks: hashmap!{
+              0 => Block{
+                small: None,
+                large: Some(Unit{orientation: Orientation::Down, color: Color::Red}),
+                id: 0,
+                neighbour_ids: NeighbourIds::new(None, Some(1), Some(2), None)
+              },
+              1 => Block{
+                small: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
+                large: None,
+                id: 1,
+                neighbour_ids: NeighbourIds::new(Some(0), None, Some(3), None)
+              },
+              2 => Block{
+                small: None,
+                large: Some(Unit{orientation: Orientation::Right, color: Color::Black}),
+                id: 2,
+                neighbour_ids: NeighbourIds::new(None, Some(3), None, Some(0))
+              },
+              3 => Block{
+                small: Some(Unit{orientation: Orientation::Left, color: Color::Red}),
+                large: None,
+                id: 3,
+                neighbour_ids: NeighbourIds::new(Some(2), None, None, Some(1))
+              },
+            }
+        };
+
+        assert_eq!(rotated_board, expected_rotated_board);
+    }
+
+    #[test]
+    fn multiple_rotations() {
+        let original_board = Board{
+            player: Player{block_id: 0},
+            blocks: hashmap!{
+              0 => Block{
+                small: None,
+                large: Some(Unit{orientation: Orientation::Right, color: Color::Red}),
+                id: 0,
+                neighbour_ids: NeighbourIds::new(None, Some(2), None, Some(1))
+              },
+              1 => Block{
+                small: Some(Unit{orientation: Orientation::Left, color: Color::Black}),
+                large: None,
+                id: 1,
+                neighbour_ids: NeighbourIds::new(None, Some(3), Some(0), None)
+              },
+              2 => Block{
+                small: None,
+                large: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
+                id: 2,
+                neighbour_ids: NeighbourIds::new(Some(0), None, None, Some(3))
+              },
+              3 => Block{
+                small: Some(Unit{orientation: Orientation::Down, color: Color::Red}),
+                large: None,
+                id: 3,
+                neighbour_ids: NeighbourIds::new(Some(1), None, Some(2), None)
+              },
+            }
+        };
+        let board1 = &original_board;
+        let board2 = &board1.rotate_cw_90_deg();
+        let board3 = &board2.rotate_cw_90_deg();
+        let board4 = &board3.rotate_cw_90_deg();
+        let board5 = &board4.rotate_cw_90_deg();
+
+        assert_eq!(original_board, *board5);
+        assert_eq!(
+            calculate_hash(&original_board), 
+            calculate_hash(board5)
+        );
+    }
+
+    #[test]
+    fn multiple_flips() {
+        let original_board = Board{
+            player: Player{block_id: 0},
+            blocks: hashmap!{
+              0 => Block{
+                small: None,
+                large: Some(Unit{orientation: Orientation::Right, color: Color::Red}),
+                id: 0,
+                neighbour_ids: NeighbourIds::new(None, Some(2), None, Some(1))
+              },
+              1 => Block{
+                small: Some(Unit{orientation: Orientation::Left, color: Color::Black}),
+                large: None,
+                id: 1,
+                neighbour_ids: NeighbourIds::new(None, Some(3), Some(0), None)
+              },
+              2 => Block{
+                small: None,
+                large: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
+                id: 2,
+                neighbour_ids: NeighbourIds::new(Some(0), None, None, Some(3))
+              },
+              3 => Block{
+                small: Some(Unit{orientation: Orientation::Down, color: Color::Red}),
+                large: None,
+                id: 3,
+                neighbour_ids: NeighbourIds::new(Some(1), None, Some(2), None)
+              },
+            }
+        };
+        let board1 = &original_board;
+        let board2 = &board1.flip_horizontal();
+        let board3 = &board2.flip_horizontal();
+
+        assert_eq!(original_board, *board3);
+        assert_eq!(
+            calculate_hash(&original_board), 
+            calculate_hash(board3)
+        );
     }
 }

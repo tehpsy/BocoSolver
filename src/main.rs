@@ -9,12 +9,13 @@ use std::time::{Duration, Instant};
 
 fn main() {
     let start1 = Instant::now();
-    let boards = builder::build(3, 3, 1, 1, 1, 1);
+    let boards = builder::build(3, 3, 0, 0, 1, 1);
+    // let boards = builder::build(3, 3, 1, 1, 1, 1);
     println!("Creating {} boards took {:?} seconds", boards.len(), start1.elapsed());
 
     // let n = 10000;
     // let a = boards[0..n].to_vec();
-    // let b = boards[boards.len()-n .. boards.len()].to_vec();
+    // let b = boards[boards.len()-n .. boards.len()].to_vec();9
 
     let start2 = Instant::now();
 

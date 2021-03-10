@@ -19,6 +19,26 @@ impl Orientation {
         }
     }
 
+    pub fn is_horizontal(&self) -> bool {
+        match self {
+            Orientation::Up | Orientation::Down => return false,
+            Orientation::Left | Orientation::Right => return true,
+        }
+    }
+
+    pub fn is_vertical(&self) -> bool {
+        !self.is_horizontal()
+    }
+
+    pub fn rotate_cw_90_deg(&self) -> Orientation {
+        match self {
+            Orientation::Up => return Orientation::Right,
+            Orientation::Down => return Orientation::Left,
+            Orientation::Left => return Orientation::Up,
+            Orientation::Right => return Orientation::Down,
+        }
+    }
+
     // fn to_string(&self) -> String {
     //     match self {
     //         Orientation::Up => return "up".to_owned(),
