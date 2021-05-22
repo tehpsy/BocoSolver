@@ -18,6 +18,19 @@ fn boards_by_inserting(size: Size, color: Color, board: &Board) -> Vec<Board> {
 
     for i in available_block_ids {
       Orientation::into_enum_iter().for_each(|orientation| {
+        let opposite = orientation.opposite();
+        let block_id_on_opening_side = board.blocks[&i].neighbour_ids.neighbour_towards(&orientation);
+        if block_id_on_opening_side == None {
+          return;
+        }
+        let block_on_opening_side = board.blocks[&block_id_on_opening_side.unwrap()];
+        if block_on_opening_side.small != None && block_on_opening_side.small.unwrap().orientation == opposite {
+          return;
+        }
+        if block_on_opening_side.large != None && block_on_opening_side.large.unwrap().orientation == opposite {
+          return;
+        }
+
         let mut new_board = board.clone();
         let mut block = new_board.blocks.get_mut(&i).unwrap();
         match size {
