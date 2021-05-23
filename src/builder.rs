@@ -440,27 +440,21 @@ mod test {
     }
 
     #[test]
-    fn test_build() {
+    fn test_build1() {
       let boards = build(1, 3, 2, 0, 0, 0);
-      let num_player_positions = 3;
-      let num_available_block_slots = 2;
-      let num_orientations = 4;
-      assert_eq!(
-        boards.len(),
-        num_player_positions * (num_available_block_slots * num_orientations) * ((num_available_block_slots-1) * num_orientations)
-      );
+      assert_eq!(boards.len(), 6);
     }
 
     #[test]
     fn test_build2() {
       let boards = build(4, 1, 1, 2, 0, 0);
-      assert_eq!(boards.len(), 1536);
+      assert_eq!(boards.len(), 24);
     }
 
     #[test]
     fn test_build3() {
       let boards = build(3, 3, 1, 1, 1, 1);
-      assert_eq!(boards.len(), 3870720);
+      assert_eq!(boards.len(), 529080);
     }
 
     #[test]
