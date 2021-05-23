@@ -28,7 +28,7 @@ fn main() {
         match solver::get_simplest_solution(&board) {
             Some((cost, path)) => {
                 // println!("Cost: {}", cost);
-                if cost >= 24 {
+                if cost >= 29 {
                     println!("Cost: {}", cost);
                     utils::print(&board);
                     println!("Route: {:?}", path);
@@ -40,6 +40,17 @@ fn main() {
 
     println!("Analysing boards took {:?} seconds", start2.elapsed());
     println!("Total: {:?} seconds", start1.elapsed());
+
+    // let board = example_boards::easiest_boco_level();
+    // utils::print(&board);
+    // match solver::get_simplest_solution(&board) {
+    //     Some((cost, path)) => {
+    //         println!("Cost: {}", cost);
+    //         utils::print(&board);
+    //         println!("Route: {:?}", path);
+    //     },
+    //     None => (),
+    // }
 }
 
 #[cfg(test)]

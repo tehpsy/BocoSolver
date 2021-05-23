@@ -1,16 +1,17 @@
 use super::orientation::Orientation;
+use super::position::Position;
 
 //use builder pattern to init the values -- default trait
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct NeighbourIds {
-    pub up: Option<u8>,
-    pub down: Option<u8>,
-    pub left: Option<u8>,
-    pub right: Option<u8>,
+    pub up: Option<Position>,
+    pub down: Option<Position>,
+    pub left: Option<Position>,
+    pub right: Option<Position>,
 }
 
 impl NeighbourIds {
-    pub fn new(up: Option<u8>, down: Option<u8>, left: Option<u8>, right: Option<u8>) -> NeighbourIds {
+    pub fn new(up: Option<Position>, down: Option<Position>, left: Option<Position>, right: Option<Position>) -> NeighbourIds {
         NeighbourIds{
             up,
             down,
@@ -19,7 +20,7 @@ impl NeighbourIds {
         }
     }
 
-    pub fn neighbour_towards(&self, orientation: &Orientation) -> Option<u8> {
+    pub fn neighbour_towards(&self, orientation: &Orientation) -> Option<Position> {
         match orientation {
             Orientation::Up => return self.up,
             Orientation::Down => return self.down,

@@ -65,10 +65,16 @@ pub fn get_simplest_solution(board: &Board) -> Option<(i32, Vec<NetworkNode>)> {
     let mut boards: HashMap<u64, Board> = hashmap!{};
     
     utils::build(&first_board, &mut boards, &mut c.borrow_mut());
-  
+    // println!("{}", c.borrow().node_count());
+    // println!("{}", boards.len());
+    // let hash1: u64 = (&boards.keys())[0];
+    // utils::print((&boards.keys().collect::<u64>())[0]);
+    // utils::print(&boards[&1]);
+
     let goals = utils::goals(&boards, &c.borrow());
     let mut shortest_cost: Option<i32> = None;
     let mut shortest_path: Option<Vec<NetworkNode>> = None;
+    // println!("{}", goals.len());
 
     for goal in &goals {
         let path = astar(

@@ -1,9 +1,6 @@
 mod orientation;
 pub use self::orientation::Orientation;
 
-mod player;
-pub use self::player::Player;
-
 mod size;
 pub use self::size::Size;
 
@@ -25,3 +22,5 @@ pub use self::block::Block;
 mod network_node;
 pub use self::network_node::NetworkNode;
 
+mod position;
+pub use self::position::Position;

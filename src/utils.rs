@@ -4,15 +4,15 @@ use petgraph::graphmap::UnGraphMap;
 use std::{collections::HashMap};
 
 pub fn print(board: &Board) {
-  let player_block_id = board.player.block_id;
-  let mut keys = board.blocks.keys().cloned().collect::<Vec<u8>>();
+  let player_pos = board.player_pos;
+  let mut keys = board.blocks.keys().cloned().collect::<Vec<Position>>();
   keys.sort();
 
   for key in keys {
       // let mut string = format!("{}: ", key);
       println!("{}", key);
       let block = board.blocks[&key];
-      if key == player_block_id {
+      if key == player_pos {
           // string += "player, ";
           println!("player ");
       }
@@ -83,6 +83,7 @@ pub fn goals(boards: &HashMap<u64, Board>, network: & UnGraphMap::<NetworkNode, 
       .filter(|node| { 
           let hash_id = node.hash_id;
           let board = &boards[&hash_id];
+        //   print(&board);
           return board.is_win();
       })
       .into_iter()
