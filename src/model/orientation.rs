@@ -19,6 +19,24 @@ impl Orientation {
         }
     }
 
+    pub fn flip_horizontal(&self) -> Orientation {
+        match self {
+            Orientation::Up => return Orientation::Up,
+            Orientation::Down => return Orientation::Down,
+            Orientation::Left => return Orientation::Right,
+            Orientation::Right => return Orientation::Left,
+        }
+    }
+
+    pub fn flip_vertical(&self) -> Orientation {
+        match self {
+            Orientation::Up => return Orientation::Down,
+            Orientation::Down => return Orientation::Up,
+            Orientation::Left => return Orientation::Left,
+            Orientation::Right => return Orientation::Right,
+        }
+    }
+
     pub fn is_horizontal(&self) -> bool {
         match self {
             Orientation::Up | Orientation::Down => return false,
