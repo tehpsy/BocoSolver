@@ -136,8 +136,8 @@ pub fn build(
     boards.append(&mut wip_boards);
   }
   
-  // boards
-  condense(boards)
+  boards
+  // condense(boards)
 }
 
 pub fn condense(boards: Vec<Board>) -> Vec<Board> {
