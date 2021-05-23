@@ -275,7 +275,7 @@ mod test {
       };
 
       let boards = boards_by_inserting(Size::Small, Color::Black, &board);
-      assert_eq!(boards.len(), 4);
+      assert_eq!(boards.len(), 1);
     }
 
     #[test]
@@ -429,57 +429,6 @@ mod test {
               },
               1 => Block{
                 small: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
-                large: None,
-                id: 1,
-                neighbour_ids: NeighbourIds::new(Some(0), None, None, None)
-              },
-            }
-          },
-          Board{
-            player: Player{block_id: 0},
-            blocks: hashmap!{
-              0 => Block{
-                small: None,
-                large: None,
-                id: 0,
-                neighbour_ids: NeighbourIds::new(None, Some(1), None, None)
-              },
-              1 => Block{
-                small: Some(Unit{orientation: Orientation::Down, color: Color::Black}),
-                large: None,
-                id: 1,
-                neighbour_ids: NeighbourIds::new(Some(0), None, None, None)
-              },
-            }
-          },
-          Board{
-            player: Player{block_id: 0},
-            blocks: hashmap!{
-              0 => Block{
-                small: None,
-                large: None,
-                id: 0,
-                neighbour_ids: NeighbourIds::new(None, Some(1), None, None)
-              },
-              1 => Block{
-                small: Some(Unit{orientation: Orientation::Left, color: Color::Black}),
-                large: None,
-                id: 1,
-                neighbour_ids: NeighbourIds::new(Some(0), None, None, None)
-              },
-            }
-          },
-          Board{
-            player: Player{block_id: 0},
-            blocks: hashmap!{
-              0 => Block{
-                small: None,
-                large: None,
-                id: 0,
-                neighbour_ids: NeighbourIds::new(None, Some(1), None, None)
-              },
-              1 => Block{
-                small: Some(Unit{orientation: Orientation::Right, color: Color::Black}),
                 large: None,
                 id: 1,
                 neighbour_ids: NeighbourIds::new(Some(0), None, None, None)
