@@ -7,35 +7,43 @@ mod builder;
 
 use std::time::{Duration, Instant};
 
+use model::NetworkNode;
+
 fn main() {
     let start1 = Instant::now();
     // let boards = builder::build(3, 3, 0, 0, 1, 1); // 3388 - 1.9s - 24
     // let boards = builder::build(1, 3, 0, 0, 1, 1); // 6 - tiny - 2
     // let boards = builder::build(2, 5, 1, 1, 1, 1); // 1010160 - ?s - 59
-    let boards = builder::build(3, 3, 1, 1, 1, 1); // 529080(198405 condensed) - 374s - 53
-    // let boards = builder::build(2, 4, 0, 1, 1, 1); // 21360 - 4.3s - 29
+    // let boards = builder::build(3, 3, 1, 1, 1, 1); // 529080(198405 condensed) - 374s - 53
+    let boards = builder::build(2, 4, 0, 1, 1, 1); // 21360 - 4.3s - 29
     // let boards = builder::build(2, 4, 0, 0, 1, 1); // 1968 - 0.5s - 25
     // let boards = builder::build(2, 3, 1, 0, 1, 1); // 3312 - 0.1s - 13
     println!("Creating {} boards took {:?}", boards.len(), start1.elapsed());
 
-    // let n = 10000;
-    // let a = boards[0..n].to_vec();
-    // let b = boards[boards.len()-n .. boards.len()].to_vec();9
-
     let start2 = Instant::now();
+
+    let mut stored_hardest: Option<(model::Board, i32, Vec<NetworkNode>)> = None;
 
     for board in boards {
         match solver::get_simplest_solution(&board) {
             Some((cost, path)) => {
-                // println!("Cost: {}", cost);
-                if cost >= 53 {
-                    println!("Cost: {}", cost);
-                    utils::print(&board);
-                    println!("Route: {:?}", path);
+                if let Some(ref hardest) = stored_hardest {
+                    if cost > hardest.1 {
+                        stored_hardest = Some((board.clone(), cost, path));
+                    }
+                } else {
+                    stored_hardest = Some((board.clone(), cost, path));   
                 }
             },
             None => (),
         }
+    }
+
+    if let Some(hardest) = stored_hardest {
+        // println!("Cost: {}", cost);
+        println!("Cost: {}", hardest.1);
+        utils::print(&hardest.0);
+        println!("Route: {:?}", hardest.2);
     }
 
     println!("Analysing boards took {:?}", start2.elapsed());
