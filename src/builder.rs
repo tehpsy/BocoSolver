@@ -120,38 +120,38 @@ pub fn build(
   // condense(boards)
 }
 
-// pub fn condense(boards: Vec<Board>) -> Vec<Board> {
-//   let mut used_hashes: HashSet<u64> = hashset!{};
+pub fn condense(boards: Vec<Board>) -> Vec<Board> {
+  let mut used_hashes: HashSet<u64> = hashset!{};
 
-//   let mut result: Vec<Board> = vec![];
+  let mut result: Vec<Board> = vec![];
 
-//   for board in boards.iter() {
-//     let board1 = board;
-//     let board2 = &board1.rotate_cw_90_deg();
-//     let board3 = &board2.rotate_cw_90_deg();
-//     let board4 = &board3.rotate_cw_90_deg();
+  for board in boards.iter() {
+    let board1 = board;
+    let board2 = &board1.rotate_cw_90_deg();
+    let board3 = &board2.rotate_cw_90_deg();
+    let board4 = &board3.rotate_cw_90_deg();
 
-//     let hashes: HashSet<u64> = vec![
-//       board1,
-//       board2,
-//       board3,
-//       board4,
-//       &board1.flip_horizontal(),
-//       &board2.flip_horizontal(),
-//       &board3.flip_horizontal(),
-//       &board4.flip_horizontal(),
-//     ].iter().map(|board| hasher::calculate_hash(*board)).collect();
+    let hashes: HashSet<u64> = vec![
+      board1,
+      board2,
+      board3,
+      board4,
+      &board1.flip_horizontal(),
+      &board2.flip_horizontal(),
+      &board3.flip_horizontal(),
+      &board4.flip_horizontal(),
+    ].iter().map(|board| hasher::calculate_hash(*board)).collect();
     
-//     if hashes.intersection(&used_hashes).collect::<Vec<&u64>>().len() == 0 {
-//       result.push(board.clone());
-//       used_hashes.insert(hasher::calculate_hash(board));
-//     }
-//   }
+    if hashes.intersection(&used_hashes).collect::<Vec<&u64>>().len() == 0 {
+      result.push(board.clone());
+      used_hashes.insert(hasher::calculate_hash(board));
+    }
+  }
 
-//   println!("{}", boards.len());
-//   println!("{}", result.len());
-//   result
-// }
+  println!("{}", boards.len());
+  println!("{}", result.len());
+  result
+}
 
 // pub fn build(
 //   num_rows: u8,
@@ -397,49 +397,41 @@ mod test {
       assert_eq!(boards.len(), 529080);
     }
 
-    // #[test]
-    // fn condense_removes_flipped_and_rotated_boards() {
-    //   let original_board = Board{
-    //     player_pos: Position{x: 0, y: 0},
-    //     blocks: hashmap!{
-    //       0 => Block{
-    //         small: None,
-    //         large: Some(Unit{orientation: Orientation::Right, color: Color::Red}),
-    //         id: 0,
-    //         neighbour_ids: NeighbourIds::new(None, Some(2), None, Some(1))
-    //       },
-    //       1 => Block{
-    //         small: Some(Unit{orientation: Orientation::Left, color: Color::Black}),
-    //         large: None,
-    //         id: 1,
-    //         neighbour_ids: NeighbourIds::new(None, Some(3), Some(0), None)
-    //       },
-    //       2 => Block{
-    //         small: None,
-    //         large: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
-    //         id: 2,
-    //         neighbour_ids: NeighbourIds::new(Some(0), None, None, Some(3))
-    //       },
-    //       3 => Block{
-    //         small: Some(Unit{orientation: Orientation::Down, color: Color::Red}),
-    //         large: None,
-    //         id: 3,
-    //         neighbour_ids: NeighbourIds::new(Some(1), None, Some(2), None)
-    //       },
-    //     }
-    //   };
-    //   let rotated_board = original_board.rotate_cw_90_deg();
-    //   let flipped_board = original_board.flip_horizontal();
+    #[test]
+    fn condense_removes_flipped_and_rotated_boards() {
+      let original_board = Board{
+        player_pos: Position{x: 0, y: 0},
+        blocks: hashmap!{
+          Position{x: 0, y: 0} => Block{
+            small: None,
+            large: Some(Unit{orientation: Orientation::Right, color: Color::Red}),
+          },
+          Position{x: 1, y: 0} => Block{
+            small: Some(Unit{orientation: Orientation::Left, color: Color::Black}),
+            large: None,
+          },
+          Position{x: 0, y: 1} => Block{
+            small: None,
+            large: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
+          },
+          Position{x: 1, y: 1} => Block{
+            small: Some(Unit{orientation: Orientation::Down, color: Color::Red}),
+            large: None,
+          },
+        }
+      };
+      let rotated_board = original_board.rotate_cw_90_deg();
+      let flipped_board = original_board.flip_horizontal();
 
-    //   assert_eq!(
-    //     condense(
-    //       vec![
-    //         original_board,
-    //         rotated_board,
-    //         flipped_board,
-    //       ]
-    //     ).len(),
-    //     1
-    //   );
-    // }
+      assert_eq!(
+        condense(
+          vec![
+            original_board,
+            rotated_board,
+            flipped_board,
+          ]
+        ).len(),
+        1
+      );
+    }
 }
