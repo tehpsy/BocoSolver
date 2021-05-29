@@ -17,30 +17,14 @@ pub struct Board {
     pub blocks: HashMap<Position, Block>,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-struct BlockHashable {
-  position: Position,
-  block: Block,
-}
-
 impl Hash for Board {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.player_pos.hash(state);
-        // self.blocks.hash(state);
 
-        // println!("{:?}", self.blocks.keys().sorted());
         for key in self.blocks.keys().sorted() {
-          // println!("{:?} has {:?}", key, self.blocks[key].quantity);
             key.hash(state);
             self.blocks[key].hash(state);
         }
-
-        // self.blocks.iter().for_each(|(position, block)| {
-        //   let block_hashable = BlockHashable{ position: *position.borrow(), block: *block.borrow() };
-        //   block_hashable.hash(state);
-        // //     position.hash(state);
-        // //     block.hash(state);
-        // });
     }
 }
 
