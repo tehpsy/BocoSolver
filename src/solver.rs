@@ -53,7 +53,7 @@ pub fn solve(board: Board) {
   };
 }
 
-pub fn get_simplest_solution(board: &Board) -> Option<(i32, Vec<NetworkNode>)> {
+pub fn get_simplest_solution(board: &Board) -> Option<(i32, Vec<NetworkNode>, HashMap<u64, Board>)> {
     let graph = UnGraphMap::<NetworkNode, ()>::new();
     let rc = RefCell::new(graph); 
     let c = Rc::new(rc);
@@ -100,14 +100,7 @@ pub fn get_simplest_solution(board: &Board) -> Option<(i32, Vec<NetworkNode>)> {
         return None
     } else {
         let nodes = shortest_path.unwrap();
-
-        if let Some(moves) = moves_for(&boards, &nodes) {
-            println!("{:?}", moves);
-        } else {
-            println!("no moves found");
-        }
-        
-        return Some((shortest_cost.unwrap(), nodes))
+        return Some((shortest_cost.unwrap(), nodes, boards))
     }
 }
 
