@@ -122,23 +122,27 @@ pub fn build(
 pub fn condense(boards: Vec<Board>) -> Vec<Board> {
   let mut used_hashes: HashSet<u64> = hashset!{};
 
-  let mut result: Vec<Board> = vec![];
+  let mut result: Vec<Board> = Vec::with_capacity(boards.len());
 
   for board in boards.iter() {
     let board1 = board;
     let board2 = &board1.rotate_cw_90_deg();
     let board3 = &board2.rotate_cw_90_deg();
     let board4 = &board3.rotate_cw_90_deg();
+    let board5 = &board1.flip_horizontal();
+    let board6 = &board2.flip_horizontal();
+    let board7 = &board3.flip_horizontal();
+    let board8 = &board4.flip_horizontal();
 
     let hashes: HashSet<u64> = vec![
       board1,
       board2,
       board3,
       board4,
-      &board1.flip_horizontal(),
-      &board2.flip_horizontal(),
-      &board3.flip_horizontal(),
-      &board4.flip_horizontal(),
+      board5,
+      board6,
+      board7,
+      board8,
     ].iter().map(|board| hasher::calculate_hash(*board)).collect();
     
     if hashes.intersection(&used_hashes).collect::<Vec<&u64>>().len() == 0 {
