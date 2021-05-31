@@ -214,7 +214,43 @@ impl Board {
 
       new_board
     }
+
+    pub fn compare(&self, other: &Board) -> Option<Orientation> {
+      if (self.player_pos.x == other.player_pos.x && self.player_pos.y == other.player_pos.y) {
+        return None; 
+      }
+
+      let mut orientation: Option<Orientation> = None;
+
+      if (self.player_pos.x == other.player_pos.x) {
+        if (self.player_pos.y + 1 == other.player_pos.y) {
+          orientation = Some(Orientation::Down);
+        } 
+        if (self.player_pos.y - 1 == other.player_pos.y) {
+          orientation = Some(Orientation::Up);
+        } 
+      }
+
+      if (self.player_pos.y == other.player_pos.y) {
+        if (self.player_pos.x + 1 == other.player_pos.x) {
+          orientation = Some(Orientation::Right);
+        } 
+        if (self.player_pos.x - 1 == other.player_pos.x) {
+          orientation = Some(Orientation::Left);
+        } 
+      }
+
+      if let Some(orient) = orientation {
+        let available_moves = self.available_moves();
+        if (available_moves.contains(&orient)) {
+          return Some(orient);
+        }
+      }
+
+      return None
+    }
 }
+
 
 #[cfg(test)]
 mod test {
@@ -399,5 +435,102 @@ mod test {
             calculate_hash(&board1), 
             calculate_hash(&board3)
         );
+    }
+
+    #[test]
+    fn compare_two_boards_with_non_adjacent_players() {
+      let blocks = hashmap!{
+        Position{x: 0, y: 0} => Block{ small: None, large: None },
+        Position{x: -1, y: 0} => Block{ small: None, large: None },
+        Position{x: -2, y: 0} => Block{ small: None, large: None },
+        Position{x: 1, y: 0} => Block{ small: None, large: None },
+        Position{x: 2, y: 0} => Block{ small: None, large: None },
+        Position{x: 0, y: 1} => Block{ small: None, large: None },
+        Position{x: 0, y: 2} => Block{ small: None, large: None },
+        Position{x: 0, y: -1} => Block{ small: None, large: None },
+        Position{x: 0, y: -2} => Block{ small: None, large: None },
+      }; 
+
+      let board1 = Board{player_pos: Position{x: 0, y: 0}, blocks: blocks.clone()};
+      let board2 = Board{player_pos: Position{x: 2, y: 0}, blocks: blocks.clone()};
+      let board3 = Board{player_pos: Position{x: -2, y: 0}, blocks: blocks.clone()};
+      let board4 = Board{player_pos: Position{x: 0, y: 2}, blocks: blocks.clone()};
+      let board5 = Board{player_pos: Position{x: 0, y: -2}, blocks: blocks.clone()};
+
+      assert_eq!(board1.compare(&board2), None);
+      assert_eq!(board1.compare(&board3), None);
+      assert_eq!(board1.compare(&board4), None);
+      assert_eq!(board1.compare(&board5), None);
+    }
+
+    #[test]
+    fn compare_two_boards_with_adjacent_players_and_no_blocking_units() {
+      let blocks = hashmap!{
+        Position{x: 0, y: 0} => Block{ small: None, large: None },
+        Position{x: -1, y: 0} => Block{ small: None, large: None },
+        Position{x: 1, y: 0} => Block{ small: None, large: None },
+        Position{x: 0, y: 1} => Block{ small: None, large: None },
+        Position{x: 0, y: -1} => Block{ small: None, large: None },
+      }; 
+      let board1 = Board{player_pos: Position{x: 0, y: 0}, blocks: blocks.clone()};
+      let board2 = Board{player_pos: Position{x: 1, y: 0}, blocks: blocks.clone()};
+      let board3 = Board{player_pos: Position{x: -1, y: 0}, blocks: blocks.clone()};
+      let board4 = Board{player_pos: Position{x: 0, y: 1}, blocks: blocks.clone()};
+      let board5 = Board{player_pos: Position{x: 0, y: -1}, blocks: blocks.clone()};
+
+      assert_eq!(board1.compare(&board2), Some(Orientation::Right));
+      assert_eq!(board1.compare(&board3), Some(Orientation::Left));
+      assert_eq!(board1.compare(&board4), Some(Orientation::Down));
+      assert_eq!(board1.compare(&board5), Some(Orientation::Up));
+    }
+
+    #[test]
+    fn compare_two_boards_with_players_at_same_location() {
+      let blocks = hashmap!{
+        Position{x: 0, y: 0} => Block{
+          small: None,
+          large: None,
+        },
+      };
+      let board1 = Board{player_pos: Position{x: 0, y: 0}, blocks: blocks.clone()};
+      let board2 = Board{player_pos: Position{x: 0, y: 0}, blocks: blocks.clone()};
+
+      assert_eq!(board1.compare(&board2), None);
+    }
+
+    #[test]
+    fn compare_two_boards_with_adjacent_players_and_blocking_units() {
+      let blocks = hashmap!{
+        Position{x: 0, y: 0} => Block{
+          small: None,
+          large: None,
+        },
+        Position{x: -1, y: 0} => Block{
+          small: None,
+          large: Some(Unit{orientation: Orientation::Left, color: Color::Red}),
+        },
+        Position{x: 1, y: 0} => Block{
+          small: Some(Unit{orientation: Orientation::Left, color: Color::Black}),
+          large: None,
+        },
+        Position{x: 0, y: 1} => Block{
+          small: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
+          large: Some(Unit{orientation: Orientation::Down, color: Color::Black}),
+        },
+        Position{x: 0, y: -1} => Block{
+          small: Some(Unit{orientation: Orientation::Down, color: Color::Red}),
+          large: None,
+        },
+      }; 
+      let board1 = Board{player_pos: Position{x: 0, y: 0}, blocks: blocks.clone()};
+      let board2 = Board{player_pos: Position{x: 1, y: 0}, blocks: blocks.clone()};
+      let board3 = Board{player_pos: Position{x: -1, y: 0}, blocks: blocks.clone()};
+      let board4 = Board{player_pos: Position{x: 0, y: 1}, blocks: blocks.clone()};
+      let board5 = Board{player_pos: Position{x: 0, y: -1}, blocks: blocks.clone()};
+
+      assert_eq!(board1.compare(&board2), Some(Orientation::Right));
+      assert_eq!(board1.compare(&board3), None);
+      assert_eq!(board1.compare(&board4), None);
+      assert_eq!(board1.compare(&board5), Some(Orientation::Up));
     }
 }
