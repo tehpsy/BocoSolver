@@ -224,10 +224,10 @@ impl Board {
 
       if (self.player_pos.x == other.player_pos.x) {
         if (self.player_pos.y + 1 == other.player_pos.y) {
-          orientation = Some(Orientation::Down);
+          orientation = Some(Orientation::Up);
         } 
         if (self.player_pos.y - 1 == other.player_pos.y) {
-          orientation = Some(Orientation::Up);
+          orientation = Some(Orientation::Down);
         } 
       }
 
@@ -480,8 +480,8 @@ mod test {
 
       assert_eq!(board1.compare(&board2), Some(Orientation::Right));
       assert_eq!(board1.compare(&board3), Some(Orientation::Left));
-      assert_eq!(board1.compare(&board4), Some(Orientation::Down));
-      assert_eq!(board1.compare(&board5), Some(Orientation::Up));
+      assert_eq!(board1.compare(&board4), Some(Orientation::Up));
+      assert_eq!(board1.compare(&board5), Some(Orientation::Down));
     }
 
     #[test]
@@ -514,11 +514,11 @@ mod test {
           large: None,
         },
         Position{x: 0, y: 1} => Block{
-          small: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
-          large: Some(Unit{orientation: Orientation::Down, color: Color::Black}),
+          small: Some(Unit{orientation: Orientation::Down, color: Color::Black}),
+          large: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
         },
         Position{x: 0, y: -1} => Block{
-          small: Some(Unit{orientation: Orientation::Down, color: Color::Red}),
+          small: Some(Unit{orientation: Orientation::Up, color: Color::Red}),
           large: None,
         },
       }; 
@@ -531,6 +531,6 @@ mod test {
       assert_eq!(board1.compare(&board2), Some(Orientation::Right));
       assert_eq!(board1.compare(&board3), None);
       assert_eq!(board1.compare(&board4), None);
-      assert_eq!(board1.compare(&board5), Some(Orientation::Up));
+      assert_eq!(board1.compare(&board5), Some(Orientation::Down));
     }
 }

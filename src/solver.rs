@@ -157,14 +157,14 @@ mod test {
     #[test]
     fn calculates_moves_correctly() {
         let unit_left = Some(Unit{orientation: Orientation::Left, color: Color::Red});
-        let unit_up = Some(Unit{orientation: Orientation::Up, color: Color::Red});
+        let unit_down = Some(Unit{orientation: Orientation::Down, color: Color::Red});
         let board1 = Board{
             player_pos: Position{x: 0, y: 0},
             blocks: hashmap!{
                 Position{x: 0, y: 0} => Block{ small: None, large: unit_left.clone(), },
                 Position{x: 1, y: 0} => Block{ small: None, large: None, },
                 Position{x: 2, y: 0} => Block{ small: None, large: None, },
-                Position{x: 0, y: 1} => Block{ small: unit_up.clone(), large: None, },
+                Position{x: 0, y: 1} => Block{ small: unit_down.clone(), large: None, },
                 Position{x: 1, y: 1} => Block{ small: None, large: None, },
                 Position{x: 2, y: 1} => Block{ small: None, large: None, },
             },
@@ -175,7 +175,7 @@ mod test {
                 Position{x: 0, y: 0} => Block{ small: None, large: None, },
                 Position{x: 1, y: 0} => Block{ small: None, large: unit_left.clone(), },
                 Position{x: 2, y: 0} => Block{ small: None, large: None, },
-                Position{x: 0, y: 1} => Block{ small: unit_up.clone(), large: None, },
+                Position{x: 0, y: 1} => Block{ small: unit_down.clone(), large: None, },
                 Position{x: 1, y: 1} => Block{ small: None, large: None, },
                 Position{x: 2, y: 1} => Block{ small: None, large: None, },
             },
@@ -186,7 +186,7 @@ mod test {
                 Position{x: 0, y: 0} => Block{ small: None, large: None, },
                 Position{x: 1, y: 0} => Block{ small: None, large: None, },
                 Position{x: 2, y: 0} => Block{ small: None, large: unit_left.clone(), },
-                Position{x: 0, y: 1} => Block{ small: unit_up.clone(), large: None, },
+                Position{x: 0, y: 1} => Block{ small: unit_down.clone(), large: None, },
                 Position{x: 1, y: 1} => Block{ small: None, large: None, },
                 Position{x: 2, y: 1} => Block{ small: None, large: None, },
             },
@@ -197,7 +197,7 @@ mod test {
                 Position{x: 0, y: 0} => Block{ small: None, large: None, },
                 Position{x: 1, y: 0} => Block{ small: None, large: None, },
                 Position{x: 2, y: 0} => Block{ small: None, large: None, },
-                Position{x: 0, y: 1} => Block{ small: unit_up.clone(), large: None, },
+                Position{x: 0, y: 1} => Block{ small: unit_down.clone(), large: None, },
                 Position{x: 1, y: 1} => Block{ small: None, large: None, },
                 Position{x: 2, y: 1} => Block{ small: None, large: unit_left.clone(), },
             },
@@ -225,7 +225,7 @@ mod test {
                 Position{x: 1, y: 0} => Block{ small: None, large: None, },
                 Position{x: 2, y: 0} => Block{ small: None, large: None, },
                 Position{x: 0, y: 1} => Block{ small: None, large: None, },
-                Position{x: 1, y: 1} => Block{ small: unit_up.clone(), large: None, },
+                Position{x: 1, y: 1} => Block{ small: unit_down.clone(), large: None, },
                 Position{x: 2, y: 1} => Block{ small: None, large: unit_left.clone(), },
             },
         };
@@ -237,7 +237,7 @@ mod test {
                 Position{x: 2, y: 0} => Block{ small: None, large: None, },
                 Position{x: 0, y: 1} => Block{ small: None, large: None, },
                 Position{x: 1, y: 1} => Block{ small: None, large: None, },
-                Position{x: 2, y: 1} => Block{ small: unit_up.clone(), large: unit_left.clone(), },
+                Position{x: 2, y: 1} => Block{ small: unit_down.clone(), large: unit_left.clone(), },
             },
         };
         let board1_hash = calculate_hash(&board1);
@@ -278,11 +278,11 @@ mod test {
         assert_eq!(moves, Some(vec![
             Orientation::Right,
             Orientation::Right,
-            Orientation::Down,
-            Orientation::Left,
             Orientation::Up,
             Orientation::Left,
             Orientation::Down,
+            Orientation::Left,
+            Orientation::Up,
             Orientation::Right,
             Orientation::Right,
         ]));

@@ -17,8 +17,8 @@ impl fmt::Display for Position {
 impl Position {
     pub fn shift(&self, orientation: Orientation) -> Position {
         match orientation {
-            Orientation::Up => Position{x: self.x, y: self.y-1},
-            Orientation::Down => Position{x: self.x, y: self.y+1},
+            Orientation::Up => Position{x: self.x, y: self.y+1},
+            Orientation::Down => Position{x: self.x, y: self.y-1},
             Orientation::Left => Position{x: self.x-1, y: self.y},
             Orientation::Right => Position{x: self.x+1, y: self.y},
         }

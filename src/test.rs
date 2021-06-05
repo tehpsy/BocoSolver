@@ -14,8 +14,6 @@ use std::cell::RefCell;
 #[cfg(test)]
 mod tests {
     use utils::print;
-
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     #[test]
@@ -50,10 +48,10 @@ mod tests {
         };
 
         assert_eq!(Board{player_pos: Position{x: 0, y: 0}, ..complex_layout.clone()}.available_moves(), hashset![Orientation::Right]);
-        assert_eq!(Board{player_pos: Position{x: 1, y: 0}, ..complex_layout.clone()}.available_moves(), hashset![Orientation::Right, Orientation::Left, Orientation::Down]);
-        assert_eq!(Board{player_pos: Position{x: 2, y: 0}, ..complex_layout.clone()}.available_moves(), hashset![Orientation::Left, Orientation::Down]);
-        assert_eq!(Board{player_pos: Position{x: 1, y: 1}, ..complex_layout.clone()}.available_moves(), hashset![Orientation::Right, Orientation::Up]);
-        assert_eq!(Board{player_pos: Position{x: 2, y: 1}, ..complex_layout.clone()}.available_moves(), hashset![Orientation::Left, Orientation::Up]);
+        assert_eq!(Board{player_pos: Position{x: 1, y: 0}, ..complex_layout.clone()}.available_moves(), hashset![Orientation::Right, Orientation::Left, Orientation::Up]);
+        assert_eq!(Board{player_pos: Position{x: 2, y: 0}, ..complex_layout.clone()}.available_moves(), hashset![Orientation::Left, Orientation::Up]);
+        assert_eq!(Board{player_pos: Position{x: 1, y: 1}, ..complex_layout.clone()}.available_moves(), hashset![Orientation::Right, Orientation::Down]);
+        assert_eq!(Board{player_pos: Position{x: 2, y: 1}, ..complex_layout.clone()}.available_moves(), hashset![Orientation::Left, Orientation::Down]);
     }
 
     #[test]
@@ -78,8 +76,8 @@ mod tests {
             }
         }
 
-        assert_eq!(create_3_x_3_layout(Position{x: 1, y: 0}, Orientation::Up).available_moves(), hashset![Orientation::Left, Orientation::Right, Orientation::Down]);
-        assert_eq!(create_3_x_3_layout(Position{x: 1, y: 0}, Orientation::Down).available_moves(), hashset![Orientation::Left, Orientation::Right]);
+        assert_eq!(create_3_x_3_layout(Position{x: 1, y: 0}, Orientation::Up).available_moves(), hashset![Orientation::Left, Orientation::Right]);
+        assert_eq!(create_3_x_3_layout(Position{x: 1, y: 0}, Orientation::Down).available_moves(), hashset![Orientation::Left, Orientation::Right, Orientation::Up]);
         assert_eq!(create_3_x_3_layout(Position{x: 1, y: 0}, Orientation::Left).available_moves(), hashset![Orientation::Left, Orientation::Right]);
         assert_eq!(create_3_x_3_layout(Position{x: 1, y: 0}, Orientation::Right).available_moves(), hashset![Orientation::Left, Orientation::Right]);
         assert_eq!(create_3_x_3_layout(Position{x: 0, y: 1}, Orientation::Up).available_moves(), hashset![Orientation::Up, Orientation::Down]);
@@ -90,8 +88,8 @@ mod tests {
         assert_eq!(create_3_x_3_layout(Position{x: 2, y: 1}, Orientation::Down).available_moves(), hashset![Orientation::Up, Orientation::Down]);
         assert_eq!(create_3_x_3_layout(Position{x: 2, y: 1}, Orientation::Left).available_moves(), hashset![Orientation::Up, Orientation::Down]);
         assert_eq!(create_3_x_3_layout(Position{x: 2, y: 1}, Orientation::Right).available_moves(), hashset![Orientation::Up, Orientation::Down, Orientation::Left]);
-        assert_eq!(create_3_x_3_layout(Position{x: 1, y: 2}, Orientation::Up).available_moves(), hashset![Orientation::Left, Orientation::Right]);
-        assert_eq!(create_3_x_3_layout(Position{x: 1, y: 2}, Orientation::Down).available_moves(), hashset![Orientation::Left, Orientation::Right, Orientation::Up]);
+        assert_eq!(create_3_x_3_layout(Position{x: 1, y: 2}, Orientation::Up).available_moves(), hashset![Orientation::Left, Orientation::Right, Orientation::Down]);
+        assert_eq!(create_3_x_3_layout(Position{x: 1, y: 2}, Orientation::Down).available_moves(), hashset![Orientation::Left, Orientation::Right]);
         assert_eq!(create_3_x_3_layout(Position{x: 1, y: 2}, Orientation::Left).available_moves(), hashset![Orientation::Left, Orientation::Right]);
         assert_eq!(create_3_x_3_layout(Position{x: 1, y: 2}, Orientation::Right).available_moves(), hashset![Orientation::Left, Orientation::Right]);
     }
@@ -137,10 +135,10 @@ mod tests {
             })
         }
 
-        assert(Position{x: 1, y: 0}, Orientation::Down);
+        assert(Position{x: 1, y: 0}, Orientation::Up);
         assert(Position{x: 0, y: 1}, Orientation::Right);
         assert(Position{x: 2, y: 1}, Orientation::Left);
-        assert(Position{x: 1, y: 2}, Orientation::Up);
+        assert(Position{x: 1, y: 2}, Orientation::Down);
     }
 
     #[test]
@@ -486,7 +484,7 @@ mod tests {
             blocks: hashmap!{
                 Position{x: 0, y: 0} => Block{
                     small: Some(Unit{
-                        orientation: Orientation::Up,
+                        orientation: Orientation::Down,
                         color: Color::Red,
                     }),
                     large: None,
@@ -543,7 +541,7 @@ mod tests {
                 Position{x: 3, y: 0} => Block{
                     small: None,
                     large: Some(Unit{
-                        orientation: Orientation::Down,
+                        orientation: Orientation::Up,
                         color: Color::Black,
                     }),
                 },
@@ -558,7 +556,7 @@ mod tests {
                 Position{x: 1, y: 1} => Block{
                     small: None,
                     large: Some(Unit{
-                        orientation: Orientation::Up,
+                        orientation: Orientation::Down,
                         color: Color::Red,
                     }),
                 },
@@ -575,7 +573,7 @@ mod tests {
                 },
                 Position{x: 4, y: 1} => Block{
                     small: Some(Unit{
-                        orientation: Orientation::Up,
+                        orientation: Orientation::Down,
                         color: Color::Red,
                     }),
                     large: None,
@@ -583,129 +581,129 @@ mod tests {
             }
         };
 
-        let last_board = Board{
-            player_pos: Position{x: 1, y: 1},
-            blocks: hashmap!{
-                Position{x: 0, y: 0} => Block{
-                    small: None,
-                    large: Some(Unit{
-                        orientation: Orientation::Down,
-                        color: Color::Black,
-                    }),
-                },
-                Position{x: 1, y: 0} => Block{
-                    small: None,
-                    large: None,
-                },
-                Position{x: 2, y: 0} => Block{
-                    small: None,
-                    large: None,
-                },
-                Position{x: 3, y: 0} => Block{
-                    small: None,
-                    large: None,
-                },
-                Position{x: 4, y: 0} => Block{
-                    small: None,
-                    large: Some(Unit{
-                        orientation: Orientation::Left,
-                        color: Color::Black,
-                    }),
-                },
-                Position{x: 0, y: 1} => Block{
-                    small: None,
-                    large: None,
-                },
-                Position{x: 1, y: 1} => Block{
-                    small: Some(Unit{
-                        orientation: Orientation::Up,
-                        color: Color::Red,
-                    }),
-                    large: Some(Unit{
-                        orientation: Orientation::Up,
-                        color: Color::Red,
-                    }),
-                },
-                Position{x: 2, y: 1} => Block{
-                    small: None,
-                    large: None,
-                },
-                Position{x: 3, y: 1} => Block{
-                    small: None,
-                    large: None,
-                },
-                Position{x: 4, y: 1} => Block{
-                    small: None,
-                    large: None,
-                },
-            }
-        };
+        // let last_board = Board{
+        //     player_pos: Position{x: 1, y: 1},
+        //     blocks: hashmap!{
+        //         Position{x: 0, y: 0} => Block{
+        //             small: None,
+        //             large: Some(Unit{
+        //                 orientation: Orientation::Down,
+        //                 color: Color::Black,
+        //             }),
+        //         },
+        //         Position{x: 1, y: 0} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //         Position{x: 2, y: 0} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //         Position{x: 3, y: 0} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //         Position{x: 4, y: 0} => Block{
+        //             small: None,
+        //             large: Some(Unit{
+        //                 orientation: Orientation::Left,
+        //                 color: Color::Black,
+        //             }),
+        //         },
+        //         Position{x: 0, y: 1} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //         Position{x: 1, y: 1} => Block{
+        //             small: Some(Unit{
+        //                 orientation: Orientation::Up,
+        //                 color: Color::Red,
+        //             }),
+        //             large: Some(Unit{
+        //                 orientation: Orientation::Up,
+        //                 color: Color::Red,
+        //             }),
+        //         },
+        //         Position{x: 2, y: 1} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //         Position{x: 3, y: 1} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //         Position{x: 4, y: 1} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //     }
+        // };
 
-        let intermediate_board = Board{
-            player_pos: Position{x: 3, y: 1},
-            blocks: hashmap!{
-                Position{x: 0, y: 0} => Block{
-                    small: None,
-                    large: None,
-                },
-                Position{x: 1, y: 0} => Block{
-                    small: None,
-                    large: None,
-                },
-                Position{x: 2, y: 0} => Block{
-                    small: None,
-                    large: None,
-                },
-                Position{x: 3, y: 0} => Block{
-                    small: None,
-                    large: Some(Unit{
-                        orientation: Orientation::Down,
-                        color: Color::Black,
-                    }),
-                },
-                Position{x: 4, y: 0} => Block{
-                    small: None,
-                    large: None,
-                },
-                Position{x: 0, y: 1} => Block{
-                    small: None,
-                    large: None,
-                },
-                Position{x: 1, y: 1} => Block{
-                    small: None,
-                    large: Some(Unit{
-                        orientation: Orientation::Up,
-                        color: Color::Red,
-                    }),
-                },
-                Position{x: 2, y: 1} => Block{
-                    small: None,
-                    large: Some(Unit{
-                        orientation: Orientation::Left,
-                        color: Color::Black,
-                    }),
-                },
-                Position{x: 3, y: 1} => Block{
-                    small: None,
-                    large: None,
-                },
-                Position{x: 4, y: 1} => Block{
-                    small: Some(Unit{
-                        orientation: Orientation::Up,
-                        color: Color::Red,
-                    }),
-                    large: None,
-                },
-            }
-        };
+        // let intermediate_board = Board{
+        //     player_pos: Position{x: 3, y: 1},
+        //     blocks: hashmap!{
+        //         Position{x: 0, y: 0} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //         Position{x: 1, y: 0} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //         Position{x: 2, y: 0} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //         Position{x: 3, y: 0} => Block{
+        //             small: None,
+        //             large: Some(Unit{
+        //                 orientation: Orientation::Down,
+        //                 color: Color::Black,
+        //             }),
+        //         },
+        //         Position{x: 4, y: 0} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //         Position{x: 0, y: 1} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //         Position{x: 1, y: 1} => Block{
+        //             small: None,
+        //             large: Some(Unit{
+        //                 orientation: Orientation::Up,
+        //                 color: Color::Red,
+        //             }),
+        //         },
+        //         Position{x: 2, y: 1} => Block{
+        //             small: None,
+        //             large: Some(Unit{
+        //                 orientation: Orientation::Left,
+        //                 color: Color::Black,
+        //             }),
+        //         },
+        //         Position{x: 3, y: 1} => Block{
+        //             small: None,
+        //             large: None,
+        //         },
+        //         Position{x: 4, y: 1} => Block{
+        //             small: Some(Unit{
+        //                 orientation: Orientation::Up,
+        //                 color: Color::Red,
+        //             }),
+        //             large: None,
+        //         },
+        //     }
+        // };
 
         let mut boards: HashMap<u64, Board> = hashmap!{};
-        let intermediate_board_hash = calculate_hash(&intermediate_board);
+        // let intermediate_board_hash = calculate_hash(&intermediate_board);
 
-        let first_hash_1 = calculate_hash(&first_board);
-        let first_hash_2 = calculate_hash(&first_board);
-        let last_hash_1 = calculate_hash(&last_board);
-        let last_hash_2 = calculate_hash(&last_board);
+        // let first_hash_1 = calculate_hash(&first_board);
+        // let first_hash_2 = calculate_hash(&first_board);
+        // let last_hash_1 = calculate_hash(&last_board);
+        // let last_hash_2 = calculate_hash(&last_board);
 
         utils::build(&first_board, &mut boards, &mut c.borrow_mut());
 
@@ -767,13 +765,13 @@ mod tests {
                 Position{x: 0, y: 0} => Block{
                     small: None,
                     large: Some(Unit{
-                        orientation: Orientation::Down,
+                        orientation: Orientation::Up,
                         color: Color::Black,
                     }),
                 },
                 Position{x: 0, y: 1} => Block{
                     small: Some(Unit{
-                        orientation: Orientation::Up,
+                        orientation: Orientation::Down,
                         color: Color::Red,
                     }),
                     large: None,
@@ -781,7 +779,7 @@ mod tests {
             }
         };
 
-        assert_eq!(board.available_moves(), hashset![Orientation::Down]);
+        assert_eq!(board.available_moves(), hashset![Orientation::Up]);
     }
 
     #[test]
@@ -791,7 +789,7 @@ mod tests {
             blocks: hashmap!{
                 Position{x: 0, y: 0} => Block{
                     small: Some(Unit{
-                        orientation: Orientation::Down,
+                        orientation: Orientation::Up,
                         color: Color::Black,
                     }),
                     large: Some(Unit{
@@ -806,7 +804,7 @@ mod tests {
             }
         };
 
-        assert_eq!(board.available_moves(), hashset![Orientation::Down]);
+        assert_eq!(board.available_moves(), hashset![Orientation::Up]);
     }
 
     #[test]
@@ -830,7 +828,7 @@ mod tests {
                         large: None,
                     },
                 }
-            }.moving(Orientation::Down),
+            }.moving(Orientation::Up),
             Board{
                 player_pos: Position{x: 0, y: 1},
                 blocks: hashmap!{
@@ -851,51 +849,6 @@ mod tests {
                 }
             }
         );
-
-        // assert_eq!(
-        //     Board{
-        //         player_pos: Position{x: 0, y: 0},
-        //         blocks: hashmap!{
-        //             Position{x: 0, y: 0} => Block{
-        //                 small: Some(Unit{
-        //                     orientation: Orientation::Right,
-        //                     color: Color::Black,
-        //                 }),
-        //                 large: None,
-        //                 id: 0,
-        //                 neighbour_ids: NeighbourIds::new(None, Some(1), None, None)},
-        //             1 => Block{
-        //                 small: None,
-        //                 large: Some(Unit{
-        //                     orientation: Orientation::Up,
-        //                     color: Color::Black,
-        //                 }),
-        //                 id: 1,
-        //                 neighbour_ids: NeighbourIds::new(Some(0), None, None, None)},
-        //         }
-        //     }.moving(Orientation::Down),
-        //     Board{
-        //         player_pos: Position{x: 1, y: 0},
-        //         blocks: hashmap!{
-        //             Position{x: 0, y: 0} => Block{
-        //                 small: None,
-        //                 large: None,
-        //                 id: 0,
-        //                 neighbour_ids: NeighbourIds::new(None, Some(1), None, None)},
-        //             1 => Block{
-        //                 small: Some(Unit{
-        //                     orientation: Orientation::Right,
-        //                     color: Color::Black,
-        //                 }),
-        //                 large: Some(Unit{
-        //                     orientation: Orientation::Up,
-        //                     color: Color::Black,
-        //                 }),
-        //                 id: 1,
-        //                 neighbour_ids: NeighbourIds::new(Some(0), None, None, None)},
-        //         }
-        //     }
-        // );
     }
 }
 
