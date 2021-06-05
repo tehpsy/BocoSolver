@@ -235,6 +235,8 @@ pub fn condense(boards: Vec<Board>) -> Vec<Board> {
 
 #[cfg(test)]
 mod test {
+    use crate::{hasher::calculate_hash, utils};
+
     use super::*;
 
     #[test]
@@ -391,7 +393,7 @@ mod test {
     #[test]
     fn test_build2() {
       let boards = build(4, 1, 1, 2, 0, 0);
-      assert_eq!(boards.len(), 12);
+      assert_eq!(boards.len(), 6);
     }
 
     #[test]
@@ -401,8 +403,14 @@ mod test {
     // }
 
     #[test]
+    fn test_build4() {
+      let boards = build(2, 2, 1, 0, 0, 0);
+      assert_eq!(boards.len(), 3);
+    }
+
+    #[test]
     fn condense_removes_flipped_and_rotated_boards() {
-      let original_board = Board{
+      let board1 = Board{
         player_pos: Position{x: 0, y: 0},
         blocks: hashmap!{
           Position{x: 0, y: 0} => Block{
@@ -423,18 +431,134 @@ mod test {
           },
         }
       };
-      let rotated_board = original_board.rotate_cw_90_deg();
-      let flipped_board = original_board.flip_horizontal();
+      let board2 = board1.rotate_cw_90_deg();
+      let board3 = board2.rotate_cw_90_deg();
+      let board4 = board3.rotate_cw_90_deg();
+      let board5 = board1.flip_horizontal();
+      let board6 = board2.flip_horizontal();
+      let board7 = board3.flip_horizontal();
+      let board8 = board4.flip_horizontal();
 
       assert_eq!(
         condense(
           vec![
-            original_board,
-            rotated_board,
-            flipped_board,
+            board1,
+            board2,
+            board3,
+            board4,
+            board5,
+            board6,
+            board7,
+            board8,
           ]
         ).len(),
         1
+      );
+    }
+
+    #[test]
+    fn condense2() {
+      assert_eq!(
+        condense(
+          vec![
+            Board{
+              player_pos: Position{x: 0, y: 0},
+              blocks: hashmap!{
+                Position{x: 0, y: 0} => Block{small: None, large: None,},
+                Position{x: 1, y: 0} => Block{small: None, large: None,},
+                Position{x: 0, y: 1} => Block{small: Some(Unit{orientation: Orientation::Down, color: Color::Black}), large: None,},
+                Position{x: 1, y: 1} => Block{small: None, large: None,},
+              }
+            },
+            Board{
+              player_pos: Position{x: 0, y: 1},
+              blocks: hashmap!{
+                Position{x: 0, y: 0} => Block{small: Some(Unit{orientation: Orientation::Up, color: Color::Black}), large: None,},
+                Position{x: 1, y: 0} => Block{small: None, large: None,},
+                Position{x: 0, y: 1} => Block{small: None, large: None,},
+                Position{x: 1, y: 1} => Block{small: None, large: None,},
+              }
+            },
+          ]
+        ).len(),
+        1
+      );
+    }
+
+    #[test]
+    fn condense3() {
+      assert_eq!(
+        condense(
+          vec![
+            Board{
+              player_pos: Position{x: 0, y: 0},
+              blocks: hashmap!{
+                Position{x: 0, y: 0} => Block{small: None, large: None,},
+                Position{x: 1, y: 0} => Block{small: None, large: None,},
+                Position{x: 0, y: 1} => Block{small: Some(Unit{orientation: Orientation::Down, color: Color::Black}), large: None,},
+                Position{x: 1, y: 1} => Block{small: None, large: None,},
+              }
+            },
+            Board{
+              player_pos: Position{x: 0, y: 0},
+              blocks: hashmap!{
+                Position{x: 0, y: 0} => Block{small: None, large: None,},
+                Position{x: 1, y: 0} => Block{small: Some(Unit{orientation: Orientation::Left, color: Color::Black}), large: None,},
+                Position{x: 0, y: 1} => Block{small: None, large: None,},
+                Position{x: 1, y: 1} => Block{small: None, large: None,},
+              }
+            },
+          ]
+        ).len(),
+        1
+      );
+    }
+
+    #[test]
+    fn rotate_cw() {
+      let board = Board{
+        player_pos: Position{x: 0, y: 0},
+        blocks: hashmap!{
+          Position{x: 0, y: 0} => Block{small: None, large: None,},
+          Position{x: 1, y: 0} => Block{small: None, large: None,},
+          Position{x: 0, y: 1} => Block{small: Some(Unit{orientation: Orientation::Down, color: Color::Black}), large: None,},
+          Position{x: 1, y: 1} => Block{small: None, large: None,},
+        }
+      };
+      assert_eq!(
+        board.rotate_cw_90_deg(),
+        Board{
+          player_pos: Position{x: 0, y: 0},
+          blocks: hashmap!{
+            Position{x: 0, y: 0} => Block{small: None, large: None,},
+            Position{x: 1, y: 0} => Block{small: Some(Unit{orientation: Orientation::Left, color: Color::Black}), large: None,},
+            Position{x: 0, y: -1} => Block{small: None, large: None,},
+            Position{x: 1, y: -1} => Block{small: None, large: None,},
+          }
+        },
+      );
+    }
+
+    #[test]
+    fn hashing_automatically_translates_board_to_origin() {
+      let board1 = Board{
+        player_pos: Position{x: 0, y: 0},
+        blocks: hashmap!{
+          Position{x: 0, y: 0} => Block{small: None, large: None,},
+          Position{x: 1, y: 0} => Block{small: None, large: None,},
+          Position{x: 0, y: 1} => Block{small: Some(Unit{orientation: Orientation::Down, color: Color::Black}), large: None,},
+          Position{x: 1, y: 1} => Block{small: None, large: None,},
+        }
+      };
+      let board2 = board1.translate(Position{x: 2, y: 3});
+      let board3 = board1.translate(Position{x: -3, y: -2});
+      assert_eq!(
+        calculate_hash(&board1),
+        calculate_hash(&board2),
+      );
+      assert_eq!(
+        calculate_hash(&board1),
+        calculate_hash(&board3),
       );
     }
 }

@@ -19,10 +19,12 @@ pub struct Board {
 
 impl Hash for Board {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.player_pos.hash(state);
+      let (translation, _) = self.get_size();
+
+      self.player_pos.translate(-translation).hash(state);
 
         for key in self.blocks.keys().sorted() {
-            key.hash(state);
+            key.translate(-translation).hash(state);
             self.blocks[key].hash(state);
         }
     }
@@ -160,17 +162,14 @@ impl Board {
     }
 
     pub fn flip_horizontal(&self) -> Board {
-        let (_, max_pos) = self.get_size();
-        let mirror_x_val = (max_pos.x as f64) / 2_f64;
-
         let mut new_board = Board{
-          player_pos: self.player_pos.reflect_horizontally(mirror_x_val), 
+          player_pos: self.player_pos.reflect_horizontally(), 
           blocks: hashmap!{}
         };
 
         for (position, block) in self.blocks.iter() {
           new_board.blocks.insert(
-            position.reflect_horizontally(mirror_x_val),
+            position.reflect_horizontally(),
             block.flip_horizontal()
           );
         }
@@ -179,27 +178,22 @@ impl Board {
     }
 
     pub fn flip_vertical(&self) -> Board {
-      let (_, max_pos) = self.get_size();
-      let mirror_y_val = (max_pos.y as f64) / 2_f64;
-
       let mut new_board = Board{
-        player_pos: self.player_pos.reflect_vertically(mirror_y_val), 
+        player_pos: self.player_pos.reflect_vertically(), 
         blocks: hashmap!{}
       };
 
       for (position, block) in self.blocks.iter() {
         new_board.blocks.insert(
-          position.reflect_vertically(mirror_y_val),
+          position.reflect_vertically(),
           block.flip_vertical()
         );
       }
 
       new_board
-    }
+  }
 
     pub fn rotate_cw_90_deg(&self) -> Board {
-      let (_, max_pos) = self.get_size();
-      
       let mut new_board = Board{
         player_pos: self.player_pos.rotate_cw(), 
         blocks: hashmap!{}
@@ -209,6 +203,22 @@ impl Board {
         new_board.blocks.insert(
           position.rotate_cw(),
           block.rotate_cw()
+        );
+      }
+
+      new_board
+    }
+
+    pub fn translate(&self, translation: Position) -> Board {
+      let mut new_board = Board{
+        player_pos: self.player_pos.translate(translation),
+        blocks: hashmap!{}
+      };
+
+      for (position, block) in self.blocks.iter() {
+        new_board.blocks.insert(
+          position.clone().translate(translation),
+          block.clone()
         );
       }
 
@@ -288,25 +298,25 @@ mod test {
         };
         let flipped_board = original_board.flip_horizontal();
         let expected_flipped_board = Board{
-          player_pos: Position{x: 0, y: 2},
+          player_pos: Position{x: -7, y: 2},
           blocks: hashmap!{
-            Position{x: 2, y: 2} => Block{
+            Position{x: -5, y: 2} => Block{
               small: None,
               large: Some(Unit{orientation: Orientation::Left, color: Color::Red}),
             },
-            Position{x: 1, y: 2} => Block{
+            Position{x: -6, y: 2} => Block{
               small: Some(Unit{orientation: Orientation::Right, color: Color::Black}),
               large: None,
             },
-            Position{x: 0, y: 2} => Block{
+            Position{x: -7, y: 2} => Block{
               small: None,
               large: Some(Unit{orientation: Orientation::Up, color: Color::Black}),
             },
-            Position{x: 0, y: 3} => Block{
+            Position{x: -7, y: 3} => Block{
               small: Some(Unit{orientation: Orientation::Down, color: Color::Red}),
               large: None,
             },
-            Position{x: 0, y: 4} => Block{
+            Position{x: -7, y: 4} => Block{
               small: Some(Unit{orientation: Orientation::Right, color: Color::Black}),
               large: None,
             },
@@ -339,30 +349,32 @@ mod test {
               },
             }
         };
-        let rotated_board = original_board.rotate_cw_90_deg();
         let expected_rotated_board = Board{
-          player_pos: Position{x: -1, y: 2},
+          player_pos: Position{x: 1, y: -2},
           blocks: hashmap!{
-            Position{x: -1, y: 2} => Block{
+            Position{x: 1, y: -2} => Block{
               small: None,
               large: Some(Unit{orientation: Orientation::Up, color: Color::Red}),
             },
-            Position{x: -1, y: 3} => Block{
+            Position{x: 1, y: -3} => Block{
               small: Some(Unit{orientation: Orientation::Down, color: Color::Black}),
               large: None,
             },
-            Position{x: -1, y: 4} => Block{
+            Position{x: 1, y: -4} => Block{
               small: None,
               large: Some(Unit{orientation: Orientation::Left, color: Color::Black}),
             },
-            Position{x: -2, y: 4} => Block{
+            Position{x: 2, y: -4} => Block{
               small: Some(Unit{orientation: Orientation::Right, color: Color::Red}),
               large: None,
             },
           }
       };
 
-        assert_eq!(rotated_board, expected_rotated_board);
+      assert_eq!(
+        original_board.rotate_cw_90_deg(),
+        expected_rotated_board
+      );
     }
 
     #[test]
