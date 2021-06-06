@@ -11,15 +11,6 @@ pub struct NeighbourIds {
 }
 
 impl NeighbourIds {
-    pub fn new(up: Option<Position>, down: Option<Position>, left: Option<Position>, right: Option<Position>) -> NeighbourIds {
-        NeighbourIds{
-            up,
-            down,
-            left,
-            right,
-        }
-    }
-
     pub fn neighbour_towards(&self, orientation: &Orientation) -> Option<Position> {
         match orientation {
             Orientation::Up => return self.up,

@@ -28,26 +28,6 @@ impl Orientation {
         }
     }
 
-    pub fn flip_vertical(&self) -> Orientation {
-        match self {
-            Orientation::Up => return Orientation::Down,
-            Orientation::Down => return Orientation::Up,
-            Orientation::Left => return Orientation::Left,
-            Orientation::Right => return Orientation::Right,
-        }
-    }
-
-    pub fn is_horizontal(&self) -> bool {
-        match self {
-            Orientation::Up | Orientation::Down => return false,
-            Orientation::Left | Orientation::Right => return true,
-        }
-    }
-
-    pub fn is_vertical(&self) -> bool {
-        !self.is_horizontal()
-    }
-
     pub fn rotate_cw_90_deg(&self) -> Orientation {
         match self {
             Orientation::Up => return Orientation::Right,
@@ -56,15 +36,6 @@ impl Orientation {
             Orientation::Right => return Orientation::Down,
         }
     }
-
-    // fn to_string(&self) -> String {
-    //     match self {
-    //         Orientation::Up => return "up".to_owned(),
-    //         Orientation::Down => return "down".to_owned(),
-    //         Orientation::Left => return "left".to_owned(),
-    //         Orientation::Right => return "right".to_owned(),
-    //     }
-    // }
 }
 
 impl fmt::Display for Orientation {

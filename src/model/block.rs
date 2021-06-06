@@ -1,6 +1,5 @@
 use super::unit::Unit;
 
-//use a vec of references to other 
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct Block {
     pub small: Option<Unit>,
@@ -13,17 +12,6 @@ impl Block {
         let large: Option<Unit>;
         if self.small != None { small = Some(self.small.unwrap().flip_horizontal()); } else { small = None; }
         if self.large != None { large = Some(self.large.unwrap().flip_horizontal()); } else { large = None; }
-        Block{
-            small: small,
-            large: large,
-        }
-    }
-
-    pub fn flip_vertical(&self) -> Block {
-        let small: Option<Unit>;
-        let large: Option<Unit>;
-        if self.small != None { small = Some(self.small.unwrap().flip_vertical()); } else { small = None; }
-        if self.large != None { large = Some(self.large.unwrap().flip_vertical()); } else { large = None; }
         Block{
             small: small,
             large: large,

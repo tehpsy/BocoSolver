@@ -119,7 +119,7 @@ pub fn build(
   condense(boards)
 }
 
-pub fn condense(boards: Vec<Board>) -> Vec<Board> {
+fn condense(boards: Vec<Board>) -> Vec<Board> {
   let mut used_hashes: HashSet<u64> = hashset!{};
 
   let mut result: Vec<Board> = Vec::with_capacity(boards.len());
@@ -156,86 +156,9 @@ pub fn condense(boards: Vec<Board>) -> Vec<Board> {
   result
 }
 
-// pub fn build(
-//   num_rows: u8,
-//   num_columns: u8,
-//   num_small_black: u8,
-//   num_large_black: u8,
-//   num_small_red: u8,
-//   num_large_red: u8
-// ) -> Vec<Board> {
-//   //TODO some sanity checks on the args?
-
-//   let num_blocks = num_columns * num_rows;
-//   // let max_id = -1;
-//   let mut block_ids: Vec<u8> = vec![];
-//   for i in 0..num_blocks {
-//     block_ids.push(i);
-//   }
-
-//   let mut counter = 0;
-
-//   for (i, player_id) in ids.iter().enumerate() {
-//       let mut ids2 = ids.clone();
-//       ids2.remove(i);
-
-//       for (i, red_small_id) in ids2.iter().enumerate() {
-//         let mut ids3 = ids2.clone();
-//         ids3.remove(i);
-
-//         Orientation::into_enum_iter().for_each(|small_red_orientation| {
-//             for (i, red_large_id) in ids3.iter().enumerate() {
-//                 let mut ids4 = ids3.clone();
-//                 ids4.remove(i);
-        
-//                 Orientation::into_enum_iter().for_each(|large_red_orientation| {
-//                     let mut blocks: HashMap<u8, Block> = hashmap!{};
-//                     for i in 0..num_blocks {
-//                         blocks.insert(i, Block{
-//                             small: None,
-//                             large: None,
-//                             id: i,
-//                             neighbour_ids: NeighbourIds::new(
-//                                 block_id(i, num_columns, num_rows, Orientation::Up),
-//                                 block_id(i, num_columns, num_rows, Orientation::Down),
-//                                 block_id(i, num_columns, num_rows, Orientation::Left),
-//                                 block_id(i, num_columns, num_rows, Orientation::Right),
-//                             )
-//                         });
-//                     }
-
-//                     let mut red_small_block = blocks[&red_small_id];
-//                     red_small_block.small = Some(Unit{orientation: small_red_orientation, color: Color::Red});
-
-//                     let mut red_large_block = blocks[&red_large_id];
-//                     red_large_block.large = Some(Unit{orientation: large_red_orientation, color: Color::Red});
-
-//                     let first_board = Board{
-//                         player: Player{block_id: *player_id},
-//                         blocks: blocks
-//                     };
-//                     let first_board_hash = calculate_hash(&first_board);
-                
-//                     let mut boards: HashMap<u64, Board> = hashmap!{};
-                    
-//                     build(&first_board, &mut boards, &mut c.borrow_mut());
-                
-//                     print(&first_board);
-//                     println!("{}", counter);
-//                     counter += 1;
-
-//                     let goals = goals(&boards, &c.borrow());
-//                 });
-//             }
-//         });
-//     }
-
-//   return vec![];
-// }
-
 #[cfg(test)]
 mod test {
-    use crate::{hasher::calculate_hash, utils};
+    use crate::{hasher::calculate_hash};
 
     use super::*;
 
@@ -550,8 +473,8 @@ mod test {
           Position{x: 1, y: 1} => Block{small: None, large: None,},
         }
       };
-      let board2 = board1.translate(Position{x: 2, y: 3});
-      let board3 = board1.translate(Position{x: -3, y: -2});
+      let board2 = translate(&board1, Position{x: 2, y: 3});
+      let board3 = translate(&board1, Position{x: -3, y: -2});
       assert_eq!(
         calculate_hash(&board1),
         calculate_hash(&board2),
@@ -560,5 +483,21 @@ mod test {
         calculate_hash(&board1),
         calculate_hash(&board3),
       );
+    }
+
+    pub fn translate(board: &Board, translation: Position) -> Board {
+      let mut new_board = Board{
+        player_pos: board.player_pos.translate(translation),
+        blocks: hashmap!{}
+      };
+  
+      for (position, block) in board.blocks.iter() {
+        new_board.blocks.insert(
+          position.clone().translate(translation),
+          block.clone()
+        );
+      }
+  
+      new_board
     }
 }

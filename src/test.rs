@@ -5,7 +5,6 @@ use enum_iterator::IntoEnumIterator;
 use model::*;
 use maplit::hashmap;
 use super::*;
-use hasher::*;
 use std::collections::HashMap;
 use petgraph::graphmap::UnGraphMap;
 use std::rc::Rc;
@@ -13,7 +12,6 @@ use std::cell::RefCell;
 
 #[cfg(test)]
 mod tests {
-    use utils::print;
     use super::*;
 
     #[test]
@@ -470,7 +468,11 @@ mod tests {
         assert_eq!(c.borrow().node_count(), 2);
         assert_eq!(c.borrow().edge_count(), 1);
         assert_eq!(boards.len(), c.borrow().node_count());
-        assert_eq!(utils::can_win(&boards, & c.borrow()), true);
+        assert_eq!(can_win(&boards, & c.borrow()), true);
+    }
+
+    fn can_win(boards: &HashMap<u64, Board>, network: & UnGraphMap::<NetworkNode, ()>) -> bool {
+        return utils::goals(boards, network).len() > 0;
     }
 
     #[test]
@@ -514,7 +516,7 @@ mod tests {
         assert_eq!(c.borrow().node_count(), 7);
         assert_eq!(c.borrow().edge_count(), 6);
         assert_eq!(boards.len(), c.borrow().node_count());
-        assert_eq!(utils::can_win(&boards, & c.borrow()), true);
+        assert_eq!(can_win(&boards, & c.borrow()), true);
     }
 
     #[test]
@@ -729,7 +731,7 @@ mod tests {
         // assert_eq!(boards.contains_key(&intermediate_board_hash), true);
         // assert_eq!(c.borrow().node_count(), 14);
         // assert_eq!(c.borrow().edge_count(), 13);
-        assert_eq!(utils::can_win(&boards, & c.borrow()), true);
+        assert_eq!(can_win(&boards, & c.borrow()), true);
     }
 
     #[test]

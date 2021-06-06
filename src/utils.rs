@@ -9,11 +9,9 @@ pub fn print(board: &Board) {
   keys.sort();
 
   for key in keys {
-      // let mut string = format!("{}: ", key);
       println!("{}", key);
       let block = board.blocks[&key];
       if key == player_pos {
-          // string += "player, ";
           println!("player ");
       }
       
@@ -28,8 +26,6 @@ pub fn print(board: &Board) {
               (Orientation::Left, Color::Red) => println!("small left red"),
               (Orientation::Right, Color::Red) => println!("small right red"),
           };
-          // println!("{}", block.small.unwrap());
-          // string += format!("{}, ", &block.small.unwrap().to_string().to_owned()[..]);
       }
 
       if block.large != None {
@@ -43,11 +39,7 @@ pub fn print(board: &Board) {
               (Orientation::Left, Color::Red) => println!("large left red"),
               (Orientation::Right, Color::Red) => println!("large right red"),
           };
-          // println!("{}", block.large.unwrap());
-          // string += format!("large {}, ", block.large.unwrap());
       }
-
-      // println!("{}", string);
   }
 }
 
@@ -73,20 +65,14 @@ pub fn build(board: &Board, boards: &mut HashMap<u64, Board>, network: &mut UnGr
   });
 }
 
-pub fn can_win(boards: &HashMap<u64, Board>, network: & UnGraphMap::<NetworkNode, ()>) -> bool {
-  return goals(boards, network).len() > 0;
-}
-
 pub fn goals(boards: &HashMap<u64, Board>, network: & UnGraphMap::<NetworkNode, ()>) -> Vec<NetworkNode> {
   return 
       network.nodes()
       .filter(|node| { 
           let hash_id = node.hash_id;
           let board = &boards[&hash_id];
-        //   print(&board);
           return board.is_win();
       })
       .into_iter()
-      // .map(|network_node| { return network_node.hash_id; })
       .collect();
 }

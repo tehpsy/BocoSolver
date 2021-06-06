@@ -35,10 +35,6 @@ impl Position {
         Position{x: -self.x, y: self.y}
     }
 
-    pub fn reflect_vertically(&self) -> Position {
-        Position{x: self.x, y: -self.y}
-    }
-
     pub fn rotate_cw(&self) -> Position {
         Position{x: self.y, y: -self.x}
     }
@@ -58,14 +54,6 @@ mod test {
         assert_eq!(Position{x: 1, y: 1}.reflect_horizontally(), Position{x: -1, y: 1});
         assert_eq!(Position{x: 2, y: -3}.reflect_horizontally(), Position{x: -2, y: -3});
         assert_eq!(Position{x: 7, y: 4}.reflect_horizontally(), Position{x: -7, y: 4});
-    }
-
-    #[test]
-    fn reflect_vertically() {
-        assert_eq!(Position{x: 0, y: 0}.reflect_vertically(), Position{x: 0, y: 0});
-        assert_eq!(Position{x: 1, y: 1}.reflect_vertically(), Position{x: 1, y: -1});
-        assert_eq!(Position{x: 2, y: -3}.reflect_vertically(), Position{x: 2, y: 3});
-        assert_eq!(Position{x: 7, y: 4}.reflect_vertically(), Position{x: 7, y: -4});
     }
 
     #[test]

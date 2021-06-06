@@ -1,10 +1,9 @@
 use enum_iterator::IntoEnumIterator;
-use super::{NeighbourIds, block::Block, position};
+use super::{NeighbourIds, block::Block};
 use super::color::Color;
-use super::unit::Unit;
 use super::orientation::Orientation;
 use super::position::Position;
-use std::{borrow::Borrow, collections::HashMap, hash::Hash};
+use std::{collections::HashMap, hash::Hash};
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use std::hash::{Hasher};
@@ -29,12 +28,6 @@ impl Hash for Board {
         }
     }
 }
-
-// impl fmt::Display for Board {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         write!(f, "({}, {})", self.player, self.blocks)
-//     }
-// }
 
 impl Board {
     pub fn neighbours(&self, position: Position) -> NeighbourIds {
@@ -87,18 +80,6 @@ impl Board {
             if dest has only large, then we can only move if source has no large or wouldn't be dragged
             if dest has both, then we can only move if source has neither
             */
-
-//             //there's no dest.large
-//             //or dest.large orientation is opposite orientation
-//             let neighbour_id = neighbour_ids.neighbour_towards(orientation).unwrap();
-//             let neighbour = self.blocks[&neighbour_id];
-//             let small_unit_ok = neighbour.small == None || 
-//                 (neighbour.small.unwrap().orientation.opposite() == *orientation && (block.small == None || block.small.unwrap().orientation == *orientation));
-//             let large_unit_ok = 
-//                 neighbour.large == None ||
-//                 (neighbour.large.unwrap().orientation.opposite() == *orientation && (block.large == None || block.large.unwrap().orientation == *orientation));
-            
-//             return small_unit_ok && large_unit_ok;
         })
         .collect();
 
@@ -109,7 +90,6 @@ impl Board {
 
     pub fn moving(&self, orientation: Orientation) -> Board {
         let player_pos = self.player_pos;
-        let block = self.blocks[&player_pos];
         let neighbours = self.neighbours(player_pos);
         let neighbour_pos = neighbours.neighbour_towards(&orientation).unwrap();
         let mut blocks = self.blocks.clone();
@@ -177,22 +157,6 @@ impl Board {
         new_board
     }
 
-    pub fn flip_vertical(&self) -> Board {
-      let mut new_board = Board{
-        player_pos: self.player_pos.reflect_vertically(), 
-        blocks: hashmap!{}
-      };
-
-      for (position, block) in self.blocks.iter() {
-        new_board.blocks.insert(
-          position.reflect_vertically(),
-          block.flip_vertical()
-        );
-      }
-
-      new_board
-  }
-
     pub fn rotate_cw_90_deg(&self) -> Board {
       let mut new_board = Board{
         player_pos: self.player_pos.rotate_cw(), 
@@ -209,50 +173,34 @@ impl Board {
       new_board
     }
 
-    pub fn translate(&self, translation: Position) -> Board {
-      let mut new_board = Board{
-        player_pos: self.player_pos.translate(translation),
-        blocks: hashmap!{}
-      };
-
-      for (position, block) in self.blocks.iter() {
-        new_board.blocks.insert(
-          position.clone().translate(translation),
-          block.clone()
-        );
-      }
-
-      new_board
-    }
-
     pub fn compare(&self, other: &Board) -> Option<Orientation> {
-      if (self.player_pos.x == other.player_pos.x && self.player_pos.y == other.player_pos.y) {
+      if self.player_pos.x == other.player_pos.x && self.player_pos.y == other.player_pos.y {
         return None; 
       }
 
       let mut orientation: Option<Orientation> = None;
 
-      if (self.player_pos.x == other.player_pos.x) {
-        if (self.player_pos.y + 1 == other.player_pos.y) {
+      if self.player_pos.x == other.player_pos.x {
+        if self.player_pos.y + 1 == other.player_pos.y {
           orientation = Some(Orientation::Up);
         } 
-        if (self.player_pos.y - 1 == other.player_pos.y) {
+        if self.player_pos.y - 1 == other.player_pos.y {
           orientation = Some(Orientation::Down);
         } 
       }
 
-      if (self.player_pos.y == other.player_pos.y) {
-        if (self.player_pos.x + 1 == other.player_pos.x) {
+      if self.player_pos.y == other.player_pos.y {
+        if self.player_pos.x + 1 == other.player_pos.x {
           orientation = Some(Orientation::Right);
         } 
-        if (self.player_pos.x - 1 == other.player_pos.x) {
+        if self.player_pos.x - 1 == other.player_pos.x {
           orientation = Some(Orientation::Left);
         } 
       }
 
       if let Some(orient) = orientation {
         let available_moves = self.available_moves();
-        if (available_moves.contains(&orient)) {
+        if available_moves.contains(&orient) {
           return Some(orient);
         }
       }
