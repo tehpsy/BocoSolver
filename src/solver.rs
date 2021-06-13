@@ -12,7 +12,14 @@ use model::*;
 use utils;
 use hasher;
 
-pub fn get_simplest_solution(board: &Board) -> Option<(i32, Vec<NetworkNode>, HashMap<u64, Board>)> {
+pub struct Solution {
+    pub start_node: NetworkNode,
+    pub cost: i32,
+    pub nodes: Vec<NetworkNode>,
+    pub boards: HashMap<u64, Board>
+}
+
+pub fn get_simplest_solution(board: &Board) -> Option<Solution> {
     let graph = UnGraphMap::<NetworkNode, ()>::new();
     let rc = RefCell::new(graph); 
     let c = Rc::new(rc);
@@ -53,7 +60,12 @@ pub fn get_simplest_solution(board: &Board) -> Option<(i32, Vec<NetworkNode>, Ha
         return None
     } else {
         let nodes = shortest_path.unwrap();
-        return Some((shortest_cost.unwrap(), nodes, boards))
+        return Some(Solution {
+            start_node: start,
+            cost: shortest_cost.unwrap(),
+            nodes,
+            boards
+        })
     }
 }
 
